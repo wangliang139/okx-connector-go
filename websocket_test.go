@@ -1,0 +1,22 @@
+package okx_connector
+
+import (
+	"log"
+	"testing"
+)
+
+func Test_kline(t *testing.T) {
+	client := NewWsPublicStreamClient()
+	_, stopCh, err := client.WsKlineServe("BTC-BRL", "candle1s", func(event *WsKlineEvent) {
+		log.Printf("%+v", event)
+	}, func(err error) {
+		log.Printf("%+v", err)
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-stopCh:
+		return
+	}
+}

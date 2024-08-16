@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 )
 
-// Test Connectivity endpoint (GET /api/v5/system/status)
+// Test Connectivity endpoint (GET /api/v5/public/time)
 type PingService struct {
 	c *Client
 }
@@ -15,7 +16,7 @@ type PingService struct {
 func (s *PingService) Do(ctx context.Context, opts ...RequestOption) (err error) {
 	r := &request{
 		method:   http.MethodGet,
-		endpoint: "/api/v5/system/status",
+		endpoint: "/api/v5/public/time",
 		secType:  secTypeNone,
 	}
 	_, err = s.c.callAPI(ctx, r, opts...)
@@ -23,6 +24,29 @@ func (s *PingService) Do(ctx context.Context, opts ...RequestOption) (err error)
 		return err
 	}
 	return nil
+}
+
+// Test Connectivity endpoint (GET /api/v5/public/time)
+type SystemTimeService struct {
+	c *Client
+}
+
+// Send the request
+func (s *SystemTimeService) Do(ctx context.Context, opts ...RequestOption) (time *int64, err error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/api/v5/public/time",
+		secType:  secTypeNone,
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	t, err := strconv.ParseInt(string(data), 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	return &t, nil
 }
 
 type SystemStatusService struct {

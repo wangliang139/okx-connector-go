@@ -200,6 +200,10 @@ func (c *Client) NewPingService() *PingService {
 	return &PingService{c: c}
 }
 
+func (c *Client) NewSystemTimeService() *SystemTimeService {
+	return &SystemTimeService{c: c}
+}
+
 func (c *Client) NewSystemStatusService() *SystemStatusService {
 	return &SystemStatusService{c: c}
 }

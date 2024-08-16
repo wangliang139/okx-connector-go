@@ -207,15 +207,15 @@ func (s *MarketKlinesService) Limit(limit int) *MarketKlinesService {
 }
 
 type Kline struct {
-	ts          string
-	open        string
-	high        string
-	low         string
-	close       string
-	vol         string
-	volCcy      string
-	volCcyQuote string
-	confirm     bool
+	Ts          string
+	Open        string
+	High        string
+	Low         string
+	Close       string
+	Vol         string
+	VolCcy      string
+	VolCcyQuote string
+	Confirm     bool
 }
 
 // Send the request
@@ -250,15 +250,15 @@ func (s *MarketKlinesService) Do(ctx context.Context, opts ...RequestOption) (re
 	candles := make([]*Kline, 0)
 	for _, item := range array {
 		candle := &Kline{
-			ts:          item[0],
-			open:        item[1],
-			high:        item[2],
-			low:         item[3],
-			close:       item[4],
-			vol:         item[5],
-			volCcy:      item[6],
-			volCcyQuote: item[7],
-			confirm:     item[8] == "1",
+			Ts:          item[0],
+			Open:        item[1],
+			High:        item[2],
+			Low:         item[3],
+			Close:       item[4],
+			Vol:         item[5],
+			VolCcy:      item[6],
+			VolCcyQuote: item[7],
+			Confirm:     item[8] == "1",
 		}
 		candles = append(candles, candle)
 	}
@@ -331,15 +331,15 @@ func (s *MarketKlinesHisService) Do(ctx context.Context, opts ...RequestOption) 
 	candles := make([]*Kline, 0)
 	for _, item := range array {
 		candle := &Kline{
-			ts:          item[0],
-			open:        item[1],
-			high:        item[2],
-			low:         item[3],
-			close:       item[4],
-			vol:         item[5],
-			volCcy:      item[6],
-			volCcyQuote: item[7],
-			confirm:     item[8] == "1",
+			Ts:          item[0],
+			Open:        item[1],
+			High:        item[2],
+			Low:         item[3],
+			Close:       item[4],
+			Vol:         item[5],
+			VolCcy:      item[6],
+			VolCcyQuote: item[7],
+			Confirm:     item[8] == "1",
 		}
 		candles = append(candles, candle)
 	}

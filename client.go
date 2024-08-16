@@ -212,6 +212,10 @@ func (c *Client) NewSymbolInfoService() *SymbolInfoService {
 	return &SymbolInfoService{c: c}
 }
 
-func (c *Client) NewMarketCandlesService() *MarketCandlesService {
-	return &MarketCandlesService{c: c}
+func (c *Client) NewMarketKlinesService() *MarketKlinesService {
+	return &MarketKlinesService{c: c}
+}
+
+func (c *Client) NewMarketKlinesHisService() *MarketKlinesHisService {
+	return &MarketKlinesHisService{c: c}
 }

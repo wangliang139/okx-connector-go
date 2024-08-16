@@ -172,7 +172,7 @@ func (s *SymbolInfoService) Do(ctx context.Context, opts ...RequestOption) (res 
 	return *symbols, nil
 }
 
-type MarketCandlesService struct {
+type MarketKlinesService struct {
 	c      *Client
 	instId string
 	bar    *string
@@ -181,32 +181,32 @@ type MarketCandlesService struct {
 	limit  *int
 }
 
-func (s *MarketCandlesService) InstId(instId string) *MarketCandlesService {
+func (s *MarketKlinesService) InstId(instId string) *MarketKlinesService {
 	s.instId = instId
 	return s
 }
 
-func (s *MarketCandlesService) Bar(bar string) *MarketCandlesService {
+func (s *MarketKlinesService) Bar(bar string) *MarketKlinesService {
 	s.bar = &bar
 	return s
 }
 
-func (s *MarketCandlesService) After(after int64) *MarketCandlesService {
+func (s *MarketKlinesService) After(after int64) *MarketKlinesService {
 	s.after = &after
 	return s
 }
 
-func (s *MarketCandlesService) Before(before int64) *MarketCandlesService {
+func (s *MarketKlinesService) Before(before int64) *MarketKlinesService {
 	s.before = &before
 	return s
 }
 
-func (s *MarketCandlesService) Limit(limit int) *MarketCandlesService {
+func (s *MarketKlinesService) Limit(limit int) *MarketKlinesService {
 	s.limit = &limit
 	return s
 }
 
-type MarketCandle struct {
+type Kline struct {
 	ts          string
 	open        string
 	high        string
@@ -219,7 +219,7 @@ type MarketCandle struct {
 }
 
 // Send the request
-func (s *MarketCandlesService) Do(ctx context.Context, opts ...RequestOption) (res []*MarketCandle, err error) {
+func (s *MarketKlinesService) Do(ctx context.Context, opts ...RequestOption) (res []*Kline, err error) {
 	r := &request{
 		method:   http.MethodGet,
 		endpoint: "/api/v5/market/candles",
@@ -247,9 +247,90 @@ func (s *MarketCandlesService) Do(ctx context.Context, opts ...RequestOption) (r
 	if err != nil {
 		return nil, err
 	}
-	candles := make([]*MarketCandle, 0)
+	candles := make([]*Kline, 0)
 	for _, item := range array {
-		candle := &MarketCandle{
+		candle := &Kline{
+			ts:          item[0],
+			open:        item[1],
+			high:        item[2],
+			low:         item[3],
+			close:       item[4],
+			vol:         item[5],
+			volCcy:      item[6],
+			volCcyQuote: item[7],
+			confirm:     item[8] == "1",
+		}
+		candles = append(candles, candle)
+	}
+	return candles, nil
+}
+
+type MarketKlinesHisService struct {
+	c      *Client
+	instId string
+	bar    *string
+	after  *int64
+	before *int64
+	limit  *int
+}
+
+func (s *MarketKlinesHisService) InstId(instId string) *MarketKlinesHisService {
+	s.instId = instId
+	return s
+}
+
+func (s *MarketKlinesHisService) Bar(bar string) *MarketKlinesHisService {
+	s.bar = &bar
+	return s
+}
+
+func (s *MarketKlinesHisService) After(after int64) *MarketKlinesHisService {
+	s.after = &after
+	return s
+}
+
+func (s *MarketKlinesHisService) Before(before int64) *MarketKlinesHisService {
+	s.before = &before
+	return s
+}
+
+func (s *MarketKlinesHisService) Limit(limit int) *MarketKlinesHisService {
+	s.limit = &limit
+	return s
+}
+
+// Send the request
+func (s *MarketKlinesHisService) Do(ctx context.Context, opts ...RequestOption) (res []*Kline, err error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/api/v5/market/history-candles",
+		secType:  secTypeNone,
+	}
+	r.setParam("instId", s.instId)
+	if s.bar != nil {
+		r.setParam("bar", *s.bar)
+	}
+	if s.after != nil {
+		r.setParam("after", *s.after)
+	}
+	if s.before != nil {
+		r.setParam("before", *s.before)
+	}
+	if s.limit != nil {
+		r.setParam("limit", *s.limit)
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	var array [][]string
+	err = json.Unmarshal(data, &array)
+	if err != nil {
+		return nil, err
+	}
+	candles := make([]*Kline, 0)
+	for _, item := range array {
+		candle := &Kline{
 			ts:          item[0],
 			open:        item[1],
 			high:        item[2],

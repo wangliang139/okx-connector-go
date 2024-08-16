@@ -12,12 +12,22 @@ const (
 	Passphrase = "Jiv@Hceq&zZJ6c"
 )
 
-func Test_SystemStatus(t *testing.T) {
+func Test_SymbolInfo(t *testing.T) {
 	client := NewClient(Apikey, Secretkey, Passphrase)
 	client.Debug = true
 	response, err := client.NewSymbolInfoService().InstType("SPOT").InstId("BTC-BRL").Do(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
-	log.Print(response)
+	log.Printf("%+v", response)
+}
+
+func Test_MarketCandles(t *testing.T) {
+	client := NewClient(Apikey, Secretkey, Passphrase)
+	client.Debug = true
+	response, err := client.NewMarketCandlesService().InstId("BTC-BRL").Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%+v", response)
 }

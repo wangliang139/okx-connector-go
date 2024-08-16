@@ -128,7 +128,7 @@ func (c *Client) parseRequest(r *request, opts ...RequestOption) (err error) {
 		if len(queryString) > 0 {
 			raw = fmt.Sprintf("%s?%s", raw, queryString)
 		}
-		c.debug(raw)
+		c.debug("before sign: %s", raw)
 		mac := hmac.New(sha256.New, []byte(c.SecretKey))
 		_, err = mac.Write([]byte(raw))
 		if err != nil {
@@ -206,4 +206,8 @@ func (c *Client) NewSystemStatusService() *SystemStatusService {
 
 func (c *Client) NewSymbolInfoService() *SymbolInfoService {
 	return &SymbolInfoService{c: c}
+}
+
+func (c *Client) NewMarketCandlesService() *MarketCandlesService {
+	return &MarketCandlesService{c: c}
 }

@@ -79,10 +79,6 @@ func (s *SymbolInfoService) InstId(instId string) *SymbolInfoService {
 	return s
 }
 
-type SymbolInfoResponse struct {
-	Symbols []SymbolInfo `json:"data"`
-}
-
 type SymbolInfo struct {
 	InstType     string `json:"instType"`
 	InstId       string `json:"instId"`
@@ -124,7 +120,7 @@ type SymbolInfo struct {
 }
 
 // Send the request
-func (s *SymbolInfoService) Do(ctx context.Context, opts ...RequestOption) (res *SymbolInfoResponse, err error) {
+func (s *SymbolInfoService) Do(ctx context.Context, opts ...RequestOption) (res []*SymbolInfo, err error) {
 	r := &request{
 		method:   http.MethodGet,
 		endpoint: "/api/v5/public/instruments",
@@ -144,12 +140,94 @@ func (s *SymbolInfoService) Do(ctx context.Context, opts ...RequestOption) (res 
 	if err != nil {
 		return nil, err
 	}
-	symbols := new([]SymbolInfo)
+	symbols := new([]*SymbolInfo)
 	err = json.Unmarshal(data, symbols)
 	if err != nil {
 		return nil, err
 	}
-	return &SymbolInfoResponse{
-		Symbols: *symbols,
-	}, nil
+	return *symbols, nil
+}
+
+type MarketCandlesService struct {
+	c      *Client
+	instId string
+	bar    *int64
+	before *int64
+	limit  *int
+}
+
+func (s *MarketCandlesService) InstId(instId string) *MarketCandlesService {
+	s.instId = instId
+	return s
+}
+
+func (s *MarketCandlesService) Bar(bar int64) *MarketCandlesService {
+	s.bar = &bar
+	return s
+}
+
+func (s *MarketCandlesService) Before(before int64) *MarketCandlesService {
+	s.before = &before
+	return s
+}
+
+func (s *MarketCandlesService) Limit(limit int) *MarketCandlesService {
+	s.limit = &limit
+	return s
+}
+
+type MarketCandle struct {
+	ts          string
+	open        string
+	high        string
+	low         string
+	close       string
+	vol         string
+	volCcy      string
+	volCcyQuote string
+	confirm     bool
+}
+
+// Send the request
+func (s *MarketCandlesService) Do(ctx context.Context, opts ...RequestOption) (res []*MarketCandle, err error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/api/v5/market/candles",
+		secType:  secTypeNone,
+	}
+	r.setParam("instId", s.instId)
+	if s.bar != nil {
+		r.setParam("bar", *s.bar)
+	}
+	if s.before != nil {
+		r.setParam("before", *s.before)
+	}
+	if s.limit != nil {
+		r.setParam("limit", *s.limit)
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	var array [][]string
+	err = json.Unmarshal(data, &array)
+	if err != nil {
+		return nil, err
+	}
+	candles := make([]*MarketCandle, 0)
+	for _, item := range array {
+		candle := &MarketCandle{
+			ts:          item[0],
+			open:        item[1],
+			high:        item[2],
+			low:         item[3],
+			close:       item[4],
+			vol:         item[5],
+			volCcy:      item[6],
+			volCcyQuote: item[7],
+			confirm:     item[8] == "1",
+		}
+		candles = append(candles, candle)
+	}
+	return candles, nil
 }

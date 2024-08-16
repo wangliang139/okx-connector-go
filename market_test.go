@@ -25,7 +25,7 @@ func Test_SymbolInfo(t *testing.T) {
 func Test_MarketCandles(t *testing.T) {
 	client := NewClient(Apikey, Secretkey, Passphrase)
 	client.Debug = true
-	response, err := client.NewMarketCandlesService().InstId("BTC-BRL").Do(context.Background())
+	response, err := client.NewMarketCandlesService().InstId("BTC-BRL").Bar("1m").Do(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}

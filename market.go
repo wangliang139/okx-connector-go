@@ -151,7 +151,8 @@ func (s *SymbolInfoService) Do(ctx context.Context, opts ...RequestOption) (res 
 type MarketCandlesService struct {
 	c      *Client
 	instId string
-	bar    *int64
+	bar    *string
+	after  *int64
 	before *int64
 	limit  *int
 }
@@ -161,8 +162,13 @@ func (s *MarketCandlesService) InstId(instId string) *MarketCandlesService {
 	return s
 }
 
-func (s *MarketCandlesService) Bar(bar int64) *MarketCandlesService {
+func (s *MarketCandlesService) Bar(bar string) *MarketCandlesService {
 	s.bar = &bar
+	return s
+}
+
+func (s *MarketCandlesService) After(after int64) *MarketCandlesService {
+	s.after = &after
 	return s
 }
 
@@ -198,6 +204,9 @@ func (s *MarketCandlesService) Do(ctx context.Context, opts ...RequestOption) (r
 	r.setParam("instId", s.instId)
 	if s.bar != nil {
 		r.setParam("bar", *s.bar)
+	}
+	if s.after != nil {
+		r.setParam("after", *s.after)
 	}
 	if s.before != nil {
 		r.setParam("before", *s.before)

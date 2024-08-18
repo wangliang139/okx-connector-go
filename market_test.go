@@ -15,7 +15,7 @@ const (
 func Test_SymbolInfo(t *testing.T) {
 	client := NewClient(Apikey, Secretkey, Passphrase)
 	client.Debug = true
-	response, err := client.NewSymbolInfoService().InstType("SPOT").InstId("BTC-BRL").Do(context.Background())
+	response, err := client.NewSymbolInfoService().InstType("SPOT").InstId("G-USDT").Do(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -26,6 +26,16 @@ func Test_MarketCandles(t *testing.T) {
 	client := NewClient(Apikey, Secretkey, Passphrase)
 	client.Debug = true
 	response, err := client.NewMarketKlinesHisService().InstId("BTC-BRL").Bar("1s").Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%+v", response)
+}
+
+func Test_SymbolQuotationService(t *testing.T) {
+	client := NewClient(Apikey, Secretkey, Passphrase)
+	client.Debug = true
+	response, err := client.NewSymbolQuotationService().InstId("G-USDT").Do(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}

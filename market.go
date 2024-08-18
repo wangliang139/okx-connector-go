@@ -3,6 +3,7 @@ package okx_connector
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 )
@@ -344,4 +345,58 @@ func (s *MarketKlinesHisService) Do(ctx context.Context, opts ...RequestOption) 
 		candles = append(candles, candle)
 	}
 	return candles, nil
+}
+
+type SymbolQuotationService struct {
+	c      *Client
+	instId *string
+}
+
+func (s *SymbolQuotationService) InstId(instId string) *SymbolQuotationService {
+	s.instId = &instId
+	return s
+}
+
+type Quotation struct {
+	Ts        string `json:"ts"`
+	InstType  string `json:"instType"`
+	InstId    string `json:"instId"`
+	Last      string `json:"last"`
+	LastSz    string `json:"lastSz"`
+	AskPx     string `json:"askPx"`
+	AskSz     string `json:"askSz"`
+	BidPx     string `json:"bidPx"`
+	BidSz     string `json:"bidSz"`
+	Open24H   string `json:"open24h"`
+	High24H   string `json:"high24h"`
+	Low24H    string `json:"low24h"`
+	VolCcy24H string `json:"volCcy24h"`
+	Vol24H    string `json:"vol24h"`
+	SodUtc0   string `json:"sodUtc0"`
+	SodUtc8   string `json:"sodUtc8"`
+}
+
+// Send the request
+func (s *SymbolQuotationService) Do(ctx context.Context, opts ...RequestOption) (res *Quotation, err error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/api/v5/market/ticker",
+		secType:  secTypeNone,
+	}
+	if s.instId == nil {
+		return nil, errors.New("instId is required")
+	}
+	r.setParam("instId", *s.instId)
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	var quotations []*Quotation
+	if err := json.Unmarshal(data, &quotations); err != nil {
+		return nil, err
+	}
+	if len(quotations) == 0 {
+		return nil, nil
+	}
+	return quotations[0], nil
 }

@@ -400,3 +400,50 @@ func (s *SymbolQuotationService) Do(ctx context.Context, opts ...RequestOption) 
 	}
 	return quotations[0], nil
 }
+
+type MarketDepthService struct {
+	c      *Client
+	instId *string
+	size   *int
+}
+
+func (s *MarketDepthService) InstId(instId string) *MarketDepthService {
+	s.instId = &instId
+	return s
+}
+
+func (s *MarketDepthService) Size(size int) *MarketDepthService {
+	s.size = &size
+	return s
+}
+
+type Depth struct {
+	Ts   string     `json:"ts"`
+	Bids [][]string `json:"bids"`
+	Asks [][]string `json:"asks"`
+}
+
+// Send the request
+func (s *MarketDepthService) Do(ctx context.Context, opts ...RequestOption) (res []*Depth, err error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/api/v5/market/books",
+		secType:  secTypeNone,
+	}
+	if s.instId == nil {
+		return nil, errors.New("instId is required")
+	}
+	r.setParam("instId", *s.instId)
+	if s.size != nil {
+		r.setParam("sz", *s.size)
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	depth := new([]*Depth)
+	if err := json.Unmarshal(data, depth); err != nil {
+		return nil, err
+	}
+	return *depth, nil
+}

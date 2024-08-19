@@ -223,3 +223,7 @@ func (c *Client) NewMarketKlinesHisService() *MarketKlinesHisService {
 func (c *Client) NewSymbolQuotationService() *SymbolQuotationService {
 	return &SymbolQuotationService{c: c}
 }
+
+func (c *Client) NewMarketDepthService() *MarketDepthService {
+	return &MarketDepthService{c: c}
+}

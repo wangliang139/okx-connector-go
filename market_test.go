@@ -41,3 +41,13 @@ func Test_SymbolQuotationService(t *testing.T) {
 	}
 	log.Printf("%+v", response)
 }
+
+func Test_MarketDepthService(t *testing.T) {
+	client := NewClient(Apikey, Secretkey, Passphrase)
+	client.Debug = true
+	response, err := client.NewMarketDepthService().InstId("G-USDT").Size(100).Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%+v", response)
+}

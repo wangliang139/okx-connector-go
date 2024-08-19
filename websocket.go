@@ -28,42 +28,9 @@ type WsConfig struct {
 	Endpoint string
 }
 
-type WebsocketStreamClient struct {
-	Endpoint string
-}
-
-func NewWsPublicStreamClient(baseURL ...string) *WebsocketStreamClient {
-	// Set default base URL to production WS URL
-	url := "wss://ws.okx.com:8443"
-
-	if len(baseURL) > 0 {
-		for _, u := range baseURL {
-			if len(u) > 0 {
-				url = u
-				break
-			}
-		}
-	}
-
-	return &WebsocketStreamClient{
-		Endpoint: url,
-	}
-}
-
-func newWsConfig(endpoint string) *WsConfig {
-	return &WsConfig{
-		Endpoint: endpoint,
-	}
-}
-
-type SubscribeChannel struct {
-	Channel string `json:"channel"`
-	InstId  string `json:"instId"`
-}
-
 type SubscribeRequest struct {
 	Op   string `json:"op"`
-	Args any    `json:"args"`
+	Args []any  `json:"args"`
 }
 
 type SubscribeResponse struct {
@@ -74,10 +41,12 @@ type SubscribeResponse struct {
 	Arg    json.RawMessage `json:"arg"`
 }
 
-var wsServe = func(cfg *WsConfig, channels []*SubscribeChannel, handler WsHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
-	if len(channels) == 0 {
-		return nil, nil, fmt.Errorf("channels is empty")
-	}
+type WebsocketStreamClient struct {
+	Endpoint string
+	conn     *websocket.Conn
+}
+
+func (client *WebsocketStreamClient) dail() error {
 	Dialer := websocket.Dialer{
 		Proxy:             http.ProxyFromEnvironment,
 		HandshakeTimeout:  45 * time.Second,
@@ -85,38 +54,47 @@ var wsServe = func(cfg *WsConfig, channels []*SubscribeChannel, handler WsHandle
 	}
 	headers := http.Header{}
 	headers.Add("User-Agent", fmt.Sprintf("%s/%s", Name, Version))
-	c, _, err := Dialer.Dial(cfg.Endpoint, headers)
+	conn, _, err := Dialer.Dial(client.Endpoint, headers)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
+	client.conn = conn
+	client.conn.SetReadLimit(655350)
+	return nil
+}
 
-	// subscribe
+func (client *WebsocketStreamClient) subscribe(channels []any) error {
+	if len(channels) == 0 {
+		return fmt.Errorf("channels is empty")
+	}
 	op := &SubscribeRequest{
 		Op:   "subscribe",
 		Args: channels,
 	}
 	msg, err := json.Marshal(op)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
-	err = c.WriteMessage(websocket.TextMessage, msg)
+	err = client.conn.WriteMessage(websocket.TextMessage, msg)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
-	_, message, err := c.ReadMessage()
+	_, message, err := client.conn.ReadMessage()
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 	log.Printf("Subscribe response: %s\n", message)
 	var response SubscribeResponse
 	if err := json.Unmarshal(message, &response); err != nil {
-		return nil, nil, err
+		return err
 	}
 	if response.Code != nil {
-		return nil, nil, &ApiError{Code: *response.Code, Message: *response.Msg}
+		return &ApiError{Code: *response.Code, Message: *response.Msg}
 	}
+	return nil
+}
 
-	c.SetReadLimit(655350)
+func (client *WebsocketStreamClient) serve(handler WsHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
 	doneCh = make(chan struct{})
 	stopCh = make(chan struct{})
 	go func() {
@@ -125,7 +103,7 @@ var wsServe = func(cfg *WsConfig, channels []*SubscribeChannel, handler WsHandle
 		// closed by the client.
 		defer close(doneCh)
 		if WebsocketKeepalive {
-			keepAlive(c, WebsocketTimeout)
+			keepAlive(client.conn, WebsocketTimeout)
 		}
 
 		// Wait for the stopC channel to be closed.  We do that in a
@@ -140,7 +118,7 @@ var wsServe = func(cfg *WsConfig, channels []*SubscribeChannel, handler WsHandle
 			}
 		}()
 		for {
-			_, message, err := c.ReadMessage()
+			_, message, err := client.conn.ReadMessage()
 			if err != nil {
 				if !silent {
 					errHandler(err)
@@ -176,4 +154,52 @@ func keepAlive(c *websocket.Conn, timeout time.Duration) {
 			}
 		}
 	}()
+}
+
+func NewWsPublicStreamClient(baseURL ...string) *WebsocketStreamClient {
+	// Set default base URL to production WS URL
+	url := "wss://ws.okx.com:8443"
+	if len(baseURL) > 0 {
+		for _, u := range baseURL {
+			if len(u) > 0 {
+				url = u
+				break
+			}
+		}
+	}
+	return &WebsocketStreamClient{
+		Endpoint: url + "/ws/v5/public",
+	}
+}
+
+func NewWsPrivateStreamClient(baseURL ...string) *WebsocketStreamClient {
+	// Set default base URL to production WS URL
+	url := "wss://ws.okx.com:8443"
+	if len(baseURL) > 0 {
+		for _, u := range baseURL {
+			if len(u) > 0 {
+				url = u
+				break
+			}
+		}
+	}
+	return &WebsocketStreamClient{
+		Endpoint: url + "/ws/v5/private",
+	}
+}
+
+func NewWsBusinessStreamClient(baseURL ...string) *WebsocketStreamClient {
+	// Set default base URL to production WS URL
+	url := "wss://ws.okx.com:8443"
+	if len(baseURL) > 0 {
+		for _, u := range baseURL {
+			if len(u) > 0 {
+				url = u
+				break
+			}
+		}
+	}
+	return &WebsocketStreamClient{
+		Endpoint: url + "/ws/v5/business",
+	}
 }

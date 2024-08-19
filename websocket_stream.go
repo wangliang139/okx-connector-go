@@ -2,10 +2,14 @@ package okx_connector
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"strconv"
 )
+
+type WsEventArg struct {
+	Channel string
+	InstId  string
+}
 
 type PriceLevel struct {
 	Price    string
@@ -33,26 +37,6 @@ type Ask = PriceLevel
 // Bid is a type alias for PriceLevel.
 type Bid = PriceLevel
 
-// WsKlineHandler handle websocket kline event
-type WsKlineHandler func(event *WsKlineEvent)
-
-// WsKlineServe serve websocket kline handler with a symbol and interval like 15m, 30s
-func (c *WebsocketStreamClient) WsKlineServe(symbol string, channel string, handler WsKlineHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
-	endpoint := fmt.Sprintf("%s%s", c.Endpoint, "/ws/v5/business")
-	cfg := newWsConfig(endpoint)
-	wsHandler := func(message []byte) {
-		log.Printf("Receive event: %s", message)
-		event := new(WsKlineEvent)
-		err := json.Unmarshal(message, event)
-		if err != nil {
-			errHandler(err)
-			return
-		}
-		handler(event)
-	}
-	return wsServe(cfg, []*SubscribeChannel{{Channel: channel, InstId: symbol}}, wsHandler, errHandler)
-}
-
 // WsKlineEvent define websocket kline event
 type WsKlineEvent struct {
 	Event  string  `json:"e"`
@@ -79,4 +63,82 @@ type WsKline struct {
 	QuoteVolume          string `json:"q"`
 	ActiveBuyVolume      string `json:"V"`
 	ActiveBuyQuoteVolume string `json:"Q"`
+}
+
+// WsKlineHandler handle websocket kline event
+type WsKlineHandler func(event *WsKlineEvent)
+
+// WsKlineServe serve websocket kline handler with a symbol and interval like 15m, 30s
+func (client *WebsocketStreamClient) WsKlineServe(symbol string, channel string, handler WsKlineHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
+	err = client.dail()
+	if err != nil {
+		return
+	}
+
+	type KlineSubscribe struct {
+		Channel string `json:"channel"`
+		InstId  string `json:"instId"`
+	}
+	err = client.subscribe([]any{&KlineSubscribe{Channel: channel, InstId: symbol}})
+	if err != nil {
+		return
+	}
+
+	wsHandler := func(message []byte) {
+		log.Printf("Receive event: %s", message)
+		event := new(WsKlineEvent)
+		err := json.Unmarshal(message, event)
+		if err != nil {
+			errHandler(err)
+			return
+		}
+		handler(event)
+	}
+	return client.serve(wsHandler, errHandler)
+}
+
+type WsDepthHandler func(event *WsDepthEvent)
+
+type SymbolDepth struct {
+	Ts        string     `json:"ts"`
+	Asks      [][]string `json:"asks"`
+	Bids      [][]string `json:"bids"`
+	Checksum  int        `json:"checksum"`
+	PrevSeqId int        `json:"prevSeqId"`
+	SeqId     int        `json:"seqId"`
+}
+
+type WsDepthEvent struct {
+	Arg    WsEventArg    `json:"arg"`
+	Action string        `json:"action"`
+	Data   []SymbolDepth `json:"data"`
+}
+
+// WsDepthServe serve websocket depth handler with a symbol and interval like 15m, 30s
+func (client *WebsocketStreamClient) WsDepthServe(symbol string, channel string, handler WsDepthHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
+	err = client.dail()
+	if err != nil {
+		return
+	}
+
+	type DepthSubscribe struct {
+		Channel string `json:"channel"`
+		InstId  string `json:"instId"`
+	}
+	err = client.subscribe([]any{&DepthSubscribe{Channel: channel, InstId: symbol}})
+	if err != nil {
+		return
+	}
+
+	wsHandler := func(message []byte) {
+		log.Printf("Receive event: %s", message)
+		event := new(WsDepthEvent)
+		err := json.Unmarshal(message, event)
+		if err != nil {
+			errHandler(err)
+			return
+		}
+		handler(event)
+	}
+	return client.serve(wsHandler, errHandler)
 }

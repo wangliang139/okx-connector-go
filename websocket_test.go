@@ -20,3 +20,19 @@ func Test_kline(t *testing.T) {
 		return
 	}
 }
+
+func Test_depth(t *testing.T) {
+	client := NewWsPublicStreamClient()
+	_, stopCh, err := client.WsDepthServe("G-USDT", "books", func(event *WsDepthEvent) {
+		log.Printf("%+v", event)
+	}, func(err error) {
+		log.Printf("%+v", err)
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-stopCh:
+		return
+	}
+}

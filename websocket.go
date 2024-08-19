@@ -29,16 +29,21 @@ type WsConfig struct {
 }
 
 type SubscribeRequest struct {
-	Op   string `json:"op"`
-	Args []any  `json:"args"`
+	Op   string     `json:"op,omitempty"`
+	Args []SubOpArg `json:"args,omitempty"`
 }
 
 type SubscribeResponse struct {
-	Event  string          `json:"event"`
-	Code   *string         `json:"code"`
-	Msg    *string         `json:"msg"`
-	ConnId string          `json:"connId"`
-	Arg    json.RawMessage `json:"arg"`
+	Event  string          `json:"event,omitempty"`
+	Code   *string         `json:"code,omitempty"`
+	Msg    *string         `json:"msg,omitempty"`
+	ConnId string          `json:"connId,omitempty"`
+	Arg    json.RawMessage `json:"arg,omitempty"`
+}
+
+type SubOpArg struct {
+	Channel *string `json:"channel,omitempty"`
+	InstId  *string `json:"instId,omitempty"`
 }
 
 type WebsocketStreamClient struct {
@@ -63,7 +68,7 @@ func (client *WebsocketStreamClient) dail() error {
 	return nil
 }
 
-func (client *WebsocketStreamClient) subscribe(channels []any) error {
+func (client *WebsocketStreamClient) subscribe(channels []SubOpArg) error {
 	if len(channels) == 0 {
 		return fmt.Errorf("channels is empty")
 	}

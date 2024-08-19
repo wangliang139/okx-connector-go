@@ -69,17 +69,17 @@ type WsKline struct {
 type WsKlineHandler func(event *WsKlineEvent)
 
 // WsKlineServe serve websocket kline handler with a symbol and interval like 15m, 30s
-func (client *WebsocketStreamClient) WsKlineServe(symbol string, channel string, handler WsKlineHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
+func (client *WebsocketStreamClient) WsKlineServe(symbols []string, channel string, handler WsKlineHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
 	err = client.dail()
 	if err != nil {
 		return
 	}
 
-	type KlineSubscribe struct {
-		Channel string `json:"channel"`
-		InstId  string `json:"instId"`
+	var args []SubOpArg
+	for _, symbol := range symbols {
+		args = append(args, SubOpArg{Channel: &channel, InstId: &symbol})
 	}
-	err = client.subscribe([]any{&KlineSubscribe{Channel: channel, InstId: symbol}})
+	err = client.subscribe(args)
 	if err != nil {
 		return
 	}
@@ -115,17 +115,17 @@ type WsDepthEvent struct {
 }
 
 // WsDepthServe serve websocket depth handler with a symbol and interval like 15m, 30s
-func (client *WebsocketStreamClient) WsDepthServe(symbol string, channel string, handler WsDepthHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
+func (client *WebsocketStreamClient) WsDepthServe(symbols []string, channel string, handler WsDepthHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
 	err = client.dail()
 	if err != nil {
 		return
 	}
 
-	type DepthSubscribe struct {
-		Channel string `json:"channel"`
-		InstId  string `json:"instId"`
+	var args []SubOpArg
+	for _, symbol := range symbols {
+		args = append(args, SubOpArg{Channel: &channel, InstId: &symbol})
 	}
-	err = client.subscribe([]any{&DepthSubscribe{Channel: channel, InstId: symbol}})
+	err = client.subscribe(args)
 	if err != nil {
 		return
 	}

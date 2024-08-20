@@ -51,3 +51,13 @@ func Test_MarketDepthService(t *testing.T) {
 	}
 	log.Printf("%+v", response)
 }
+
+func Test_MarketDepthFullService(t *testing.T) {
+	client := NewClient(Apikey, Secretkey, Passphrase)
+	client.Debug = true
+	response, err := client.NewMarketDepthFullService().InstId("G-USDT").Size(1000).Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%+v", response)
+}

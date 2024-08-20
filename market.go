@@ -457,6 +457,16 @@ type MarketDepthFullService struct {
 	size   *int
 }
 
+func (s *MarketDepthFullService) InstId(instId string) *MarketDepthFullService {
+	s.instId = &instId
+	return s
+}
+
+func (s *MarketDepthFullService) Size(size int) *MarketDepthFullService {
+	s.size = &size
+	return s
+}
+
 // Send the request
 func (s *MarketDepthFullService) Do(ctx context.Context, opts ...RequestOption) (res []*Depth, err error) {
 	r := &request{

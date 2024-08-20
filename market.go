@@ -435,6 +435,43 @@ func (s *MarketDepthService) Do(ctx context.Context, opts ...RequestOption) (res
 	}
 	r.setParam("instId", *s.instId)
 	if s.size != nil {
+		if *s.size < 1 || *s.size > 400 {
+			return nil, errors.New("size must be between 1 and 400")
+		}
+		r.setParam("sz", *s.size)
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	depth := new([]*Depth)
+	if err := json.Unmarshal(data, depth); err != nil {
+		return nil, err
+	}
+	return *depth, nil
+}
+
+type MarketDepthFullService struct {
+	c      *Client
+	instId *string
+	size   *int
+}
+
+// Send the request
+func (s *MarketDepthFullService) Do(ctx context.Context, opts ...RequestOption) (res []*Depth, err error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/api/v5/market/books-full",
+		secType:  secTypeNone,
+	}
+	if s.instId == nil {
+		return nil, errors.New("instId is required")
+	}
+	r.setParam("instId", *s.instId)
+	if s.size != nil {
+		if *s.size < 1 || *s.size > 5000 {
+			return nil, errors.New("size must be between 1 and 5000")
+		}
 		r.setParam("sz", *s.size)
 	}
 	data, err := s.c.callAPI(ctx, r, opts...)

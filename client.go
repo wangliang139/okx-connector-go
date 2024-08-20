@@ -227,3 +227,7 @@ func (c *Client) NewSymbolQuotationService() *SymbolQuotationService {
 func (c *Client) NewMarketDepthService() *MarketDepthService {
 	return &MarketDepthService{c: c}
 }
+
+func (c *Client) NewMarketDepthFullService() *MarketDepthFullService {
+	return &MarketDepthFullService{c: c}
+}

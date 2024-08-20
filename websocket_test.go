@@ -24,7 +24,7 @@ func Test_kline(t *testing.T) {
 func Test_depth(t *testing.T) {
 	client := NewWsPublicStreamClient()
 	_, stopCh, err := client.WsDepthServe([]string{"G-USDT"}, "books", func(event *WsDepthEvent) {
-		log.Printf("%+v", event)
+		log.Printf("%d, %d", event.Data[0].PrevSeqId, event.Data[0].SeqId)
 	}, func(err error) {
 		log.Printf("%+v", err)
 	})

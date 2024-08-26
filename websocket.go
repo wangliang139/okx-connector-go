@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -48,7 +49,15 @@ type SubOpArg struct {
 
 type WebsocketStreamClient struct {
 	Endpoint string
+	Debug    bool
+	Logger   *log.Logger
 	conn     *websocket.Conn
+}
+
+func (c *WebsocketStreamClient) debug(format string, v ...interface{}) {
+	if c.Debug {
+		c.Logger.Printf(format, v...)
+	}
 }
 
 func (client *WebsocketStreamClient) dail() error {
@@ -88,7 +97,7 @@ func (client *WebsocketStreamClient) subscribe(channels []SubOpArg) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Subscribe response: %s\n", message)
+	client.debug("Subscribe response: %s\n", message)
 	var response SubscribeResponse
 	if err := json.Unmarshal(message, &response); err != nil {
 		return err
@@ -174,6 +183,7 @@ func NewWsPublicStreamClient(baseURL ...string) *WebsocketStreamClient {
 	}
 	return &WebsocketStreamClient{
 		Endpoint: url + "/ws/v5/public",
+		Logger:   log.New(os.Stderr, Name, log.LstdFlags),
 	}
 }
 
@@ -190,6 +200,7 @@ func NewWsPrivateStreamClient(baseURL ...string) *WebsocketStreamClient {
 	}
 	return &WebsocketStreamClient{
 		Endpoint: url + "/ws/v5/private",
+		Logger:   log.New(os.Stderr, Name, log.LstdFlags),
 	}
 }
 
@@ -206,5 +217,6 @@ func NewWsBusinessStreamClient(baseURL ...string) *WebsocketStreamClient {
 	}
 	return &WebsocketStreamClient{
 		Endpoint: url + "/ws/v5/business",
+		Logger:   log.New(os.Stderr, Name, log.LstdFlags),
 	}
 }

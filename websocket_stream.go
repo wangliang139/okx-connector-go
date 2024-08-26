@@ -2,7 +2,6 @@ package okx_connector
 
 import (
 	"encoding/json"
-	"log"
 )
 
 type WsEventArg struct {
@@ -58,7 +57,7 @@ func (client *WebsocketStreamClient) WsKlineServe(symbols []string, channel stri
 	}
 
 	wsHandler := func(message []byte) {
-		log.Printf("Receive event: %s", message)
+		client.debug("Receive event: %s", message)
 		event := new(WsKlineEvent)
 		err := json.Unmarshal(message, event)
 		if err != nil {
@@ -104,7 +103,7 @@ func (client *WebsocketStreamClient) WsDepthServe(symbols []string, channel stri
 	}
 
 	wsHandler := func(message []byte) {
-		log.Printf("Receive event: %s", message)
+		client.debug("Receive event: %s", message)
 		event := new(WsDepthEvent)
 		err := json.Unmarshal(message, event)
 		if err != nil {

@@ -5,8 +5,8 @@ import (
 )
 
 type WsEventArg struct {
-	Channel string
-	InstId  string
+	Channel string `json:"channel"`
+	InstId  string `json:"instId"`
 }
 
 // WsKlineEvent define websocket kline event
@@ -105,6 +105,52 @@ func (client *WebsocketStreamClient) WsDepthServe(symbols []string, channel stri
 	wsHandler := func(message []byte) {
 		client.debug("Receive event: %s", message)
 		event := new(WsDepthEvent)
+		err := json.Unmarshal(message, event)
+		if err != nil {
+			errHandler(err)
+			return
+		}
+		handler(event)
+	}
+	return client.serve(wsHandler, errHandler)
+}
+
+type WsTradeHandler func(event *WsTradeEvent)
+
+type AggTrade struct {
+	InstId  string `json:"instId"`
+	TradeId string `json:"tradeId"`
+	Px      string `json:"px"`
+	Sz      string `json:"sz"`
+	Side    string `json:"side"`
+	Ts      string `json:"ts"`
+	Count   string `json:"count"`
+}
+
+type WsTradeEvent struct {
+	Arg  WsEventArg `json:"arg"`
+	Data []AggTrade `json:"data"`
+}
+
+// WsTradeServe serve websocket trade handler with a symbol and interval like 15m, 30s
+func (client *WebsocketStreamClient) WsTradeServe(symbols []string, channel string, handler WsTradeHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
+	err = client.dail()
+	if err != nil {
+		return
+	}
+
+	var args []SubOpArg
+	for _, symbol := range symbols {
+		args = append(args, SubOpArg{Channel: &channel, InstId: &symbol})
+	}
+	err = client.subscribe(args)
+	if err != nil {
+		return
+	}
+
+	wsHandler := func(message []byte) {
+		client.debug("Receive event: %s", message)
+		event := new(WsTradeEvent)
 		err := json.Unmarshal(message, event)
 		if err != nil {
 			errHandler(err)

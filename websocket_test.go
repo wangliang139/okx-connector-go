@@ -36,3 +36,21 @@ func Test_depth(t *testing.T) {
 		return
 	}
 }
+
+func Test_trade(t *testing.T) {
+	WebsocketKeepalive = true
+	client := NewWsPublicStreamClient()
+	client.Debug = true
+	_, stopCh, err := client.WsTradeServe([]string{"G-USDT"}, "trades", func(event *WsTradeEvent) {
+		log.Printf("%+v", event)
+	}, func(err error) {
+		log.Printf("%+v", err)
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-stopCh:
+		return
+	}
+}

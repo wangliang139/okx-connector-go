@@ -13,7 +13,7 @@ import (
 
 var (
 	// WebsocketTimeout is an interval for sending ping/pong messages if WebsocketKeepalive is enabled
-	WebsocketTimeout = time.Second * 60
+	WebsocketTimeout = time.Second * 10
 	// WebsocketKeepalive enables sending ping/pong messages to check the connection stability
 	WebsocketKeepalive = false
 )
@@ -116,8 +116,27 @@ func (client *WebsocketStreamClient) serve(handler WsHandler, errHandler ErrHand
 		// websocket.Conn.ReadMessage or when the stopC channel is
 		// closed by the client.
 		defer close(doneCh)
+
+		lastResponse := time.Now()
 		if WebsocketKeepalive {
-			keepAlive(client.conn, WebsocketTimeout)
+			go func(c *websocket.Conn) {
+				ticker := time.NewTicker(WebsocketTimeout)
+				defer ticker.Stop()
+				for {
+					select {
+					case <-doneCh:
+						return
+					case <-ticker.C:
+						if time.Since(lastResponse) >= WebsocketTimeout {
+							client.debug("Send ping message")
+							err := c.WriteMessage(websocket.TextMessage, []byte("ping"))
+							if err != nil {
+								return
+							}
+						}
+					}
+				}
+			}(client.conn)
 		}
 
 		// Wait for the stopC channel to be closed.  We do that in a
@@ -139,35 +158,15 @@ func (client *WebsocketStreamClient) serve(handler WsHandler, errHandler ErrHand
 				}
 				return
 			}
+			lastResponse = time.Now()
+			if string(message) == "pong" {
+				client.debug("Receive pong message")
+				continue
+			}
 			handler(message)
 		}
 	}()
 	return
-}
-
-func keepAlive(c *websocket.Conn, timeout time.Duration) {
-	ticker := time.NewTicker(timeout)
-
-	lastResponse := time.Now()
-	c.SetPongHandler(func(msg string) error {
-		lastResponse = time.Now()
-		return nil
-	})
-
-	go func() {
-		defer ticker.Stop()
-		for {
-			deadline := time.Now().Add(10 * time.Second)
-			err := c.WriteControl(websocket.PingMessage, []byte{}, deadline)
-			if err != nil {
-				return
-			}
-			<-ticker.C
-			if time.Since(lastResponse) > timeout {
-				return
-			}
-		}
-	}()
 }
 
 func NewWsPublicStreamClient(baseURL ...string) *WebsocketStreamClient {

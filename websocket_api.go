@@ -151,8 +151,25 @@ func (c *WebsocketAPIClient) RequestHandler(req interface{}, handler WsHandler, 
 func wsApiServe(c *websocket.Conn, handler WsHandler, errHandler ErrHandler) (stopCh chan struct{}, err error) {
 	stopCh = make(chan struct{})
 	go func() {
+		lastResponse := time.Now()
 		if WebsocketAPIKeepalive {
-			keepAlive(c, WebsocketAPITimeout)
+			go func(c *websocket.Conn) {
+				ticker := time.NewTicker(WebsocketTimeout)
+				defer ticker.Stop()
+				for {
+					select {
+					case <-stopCh:
+						return
+					case <-ticker.C:
+						if time.Since(lastResponse) >= WebsocketTimeout {
+							err := c.WriteMessage(websocket.TextMessage, []byte("ping"))
+							if err != nil {
+								return
+							}
+						}
+					}
+				}
+			}(c)
 		}
 		silent := false
 		for {
@@ -168,6 +185,7 @@ func wsApiServe(c *websocket.Conn, handler WsHandler, errHandler ErrHandler) (st
 					}
 					continue
 				}
+				lastResponse = time.Now()
 				handler(message)
 			}
 		}

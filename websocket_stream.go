@@ -1,6 +1,7 @@
 package okx_connector
 
 import (
+	"context"
 	"encoding/json"
 )
 
@@ -41,8 +42,8 @@ type WsKline struct {
 type WsKlineHandler func(event *WsKlineEvent)
 
 // WsKlineServe serve websocket kline handler with a symbol and interval like 15m, 30s
-func (client *WebsocketStreamClient) WsKlineServe(symbols []string, channel string, handler WsKlineHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
-	err = client.dail()
+func (client *WebsocketStreamClient) WsKlineServe(ctx context.Context, symbols []string, channel string, handler WsKlineHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
+	conn, err := client.dail(ctx)
 	if err != nil {
 		return
 	}
@@ -51,7 +52,7 @@ func (client *WebsocketStreamClient) WsKlineServe(symbols []string, channel stri
 	for _, symbol := range symbols {
 		args = append(args, SubOpArg{Channel: &channel, InstId: &symbol})
 	}
-	err = client.subscribe(args)
+	err = conn.subscribe(args)
 	if err != nil {
 		return
 	}
@@ -66,7 +67,7 @@ func (client *WebsocketStreamClient) WsKlineServe(symbols []string, channel stri
 		}
 		handler(event)
 	}
-	return client.serve(wsHandler, errHandler)
+	return conn.serve(wsHandler, errHandler)
 }
 
 type WsDepthHandler func(event *WsDepthEvent)
@@ -87,8 +88,8 @@ type WsDepthEvent struct {
 }
 
 // WsDepthServe serve websocket depth handler with a symbol and interval like 15m, 30s
-func (client *WebsocketStreamClient) WsDepthServe(symbols []string, channel string, handler WsDepthHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
-	err = client.dail()
+func (client *WebsocketStreamClient) WsDepthServe(ctx context.Context, symbols []string, channel string, handler WsDepthHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
+	conn, err := client.dail(ctx)
 	if err != nil {
 		return
 	}
@@ -97,7 +98,7 @@ func (client *WebsocketStreamClient) WsDepthServe(symbols []string, channel stri
 	for _, symbol := range symbols {
 		args = append(args, SubOpArg{Channel: &channel, InstId: &symbol})
 	}
-	err = client.subscribe(args)
+	err = conn.subscribe(args)
 	if err != nil {
 		return
 	}
@@ -112,7 +113,7 @@ func (client *WebsocketStreamClient) WsDepthServe(symbols []string, channel stri
 		}
 		handler(event)
 	}
-	return client.serve(wsHandler, errHandler)
+	return conn.serve(wsHandler, errHandler)
 }
 
 type WsTradeHandler func(event *WsTradeEvent)
@@ -133,8 +134,8 @@ type WsTradeEvent struct {
 }
 
 // WsTradeServe serve websocket trade handler with a symbol and interval like 15m, 30s
-func (client *WebsocketStreamClient) WsTradeServe(symbols []string, channel string, handler WsTradeHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
-	err = client.dail()
+func (client *WebsocketStreamClient) WsTradeServe(ctx context.Context, symbols []string, channel string, handler WsTradeHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
+	conn, err := client.dail(ctx)
 	if err != nil {
 		return
 	}
@@ -143,7 +144,7 @@ func (client *WebsocketStreamClient) WsTradeServe(symbols []string, channel stri
 	for _, symbol := range symbols {
 		args = append(args, SubOpArg{Channel: &channel, InstId: &symbol})
 	}
-	err = client.subscribe(args)
+	err = conn.subscribe(args)
 	if err != nil {
 		return
 	}
@@ -158,5 +159,5 @@ func (client *WebsocketStreamClient) WsTradeServe(symbols []string, channel stri
 		}
 		handler(event)
 	}
-	return client.serve(wsHandler, errHandler)
+	return conn.serve(wsHandler, errHandler)
 }

@@ -1,6 +1,7 @@
 package okx_connector
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -51,7 +52,11 @@ type WebsocketStreamClient struct {
 	Endpoint string
 	Debug    bool
 	Logger   *log.Logger
-	conn     *websocket.Conn
+}
+
+type WebsocketStreamConn struct {
+	Conn   *websocket.Conn
+	Client *WebsocketStreamClient
 }
 
 func (c *WebsocketStreamClient) debug(format string, v ...interface{}) {
@@ -60,7 +65,7 @@ func (c *WebsocketStreamClient) debug(format string, v ...interface{}) {
 	}
 }
 
-func (client *WebsocketStreamClient) dail() error {
+func (c *WebsocketStreamClient) dail(ctx context.Context) (*WebsocketStreamConn, error) {
 	Dialer := websocket.Dialer{
 		Proxy:             http.ProxyFromEnvironment,
 		HandshakeTimeout:  45 * time.Second,
@@ -68,16 +73,18 @@ func (client *WebsocketStreamClient) dail() error {
 	}
 	headers := http.Header{}
 	headers.Add("User-Agent", fmt.Sprintf("%s/%s", Name, Version))
-	conn, _, err := Dialer.Dial(client.Endpoint, headers)
+	conn, _, err := Dialer.DialContext(ctx, c.Endpoint, headers)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	client.conn = conn
-	client.conn.SetReadLimit(655350)
-	return nil
+	conn.SetReadLimit(655350)
+	return &WebsocketStreamConn{
+		Conn:   conn,
+		Client: c,
+	}, nil
 }
 
-func (client *WebsocketStreamClient) subscribe(channels []SubOpArg) error {
+func (c *WebsocketStreamConn) subscribe(channels []SubOpArg) error {
 	if len(channels) == 0 {
 		return fmt.Errorf("channels is empty")
 	}
@@ -89,15 +96,15 @@ func (client *WebsocketStreamClient) subscribe(channels []SubOpArg) error {
 	if err != nil {
 		return err
 	}
-	err = client.conn.WriteMessage(websocket.TextMessage, msg)
+	err = c.Conn.WriteMessage(websocket.TextMessage, msg)
 	if err != nil {
 		return err
 	}
-	_, message, err := client.conn.ReadMessage()
+	_, message, err := c.Conn.ReadMessage()
 	if err != nil {
 		return err
 	}
-	client.debug("Subscribe response: %s\n", message)
+	c.Client.debug("Subscribe response: %s\n", message)
 	var response SubscribeResponse
 	if err := json.Unmarshal(message, &response); err != nil {
 		return err
@@ -108,7 +115,7 @@ func (client *WebsocketStreamClient) subscribe(channels []SubOpArg) error {
 	return nil
 }
 
-func (client *WebsocketStreamClient) serve(handler WsHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
+func (c *WebsocketStreamConn) serve(handler WsHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
 	doneCh = make(chan struct{})
 	stopCh = make(chan struct{})
 	go func() {
@@ -119,7 +126,7 @@ func (client *WebsocketStreamClient) serve(handler WsHandler, errHandler ErrHand
 
 		lastResponse := time.Now()
 		if WebsocketKeepalive {
-			go func(c *websocket.Conn) {
+			go func(conn *websocket.Conn) {
 				ticker := time.NewTicker(WebsocketTimeout)
 				defer ticker.Stop()
 				for {
@@ -128,15 +135,15 @@ func (client *WebsocketStreamClient) serve(handler WsHandler, errHandler ErrHand
 						return
 					case <-ticker.C:
 						if time.Since(lastResponse) >= WebsocketTimeout {
-							client.debug("Send ping message")
-							err := c.WriteMessage(websocket.TextMessage, []byte("ping"))
+							c.Client.debug("Send ping message")
+							err := conn.WriteMessage(websocket.TextMessage, []byte("ping"))
 							if err != nil {
 								return
 							}
 						}
 					}
 				}
-			}(client.conn)
+			}(c.Conn)
 		}
 
 		// Wait for the stopC channel to be closed.  We do that in a
@@ -151,7 +158,7 @@ func (client *WebsocketStreamClient) serve(handler WsHandler, errHandler ErrHand
 			}
 		}()
 		for {
-			_, message, err := client.conn.ReadMessage()
+			_, message, err := c.Conn.ReadMessage()
 			if err != nil {
 				if !silent {
 					errHandler(err)
@@ -160,7 +167,7 @@ func (client *WebsocketStreamClient) serve(handler WsHandler, errHandler ErrHand
 			}
 			lastResponse = time.Now()
 			if string(message) == "pong" {
-				client.debug("Receive pong message")
+				c.Client.debug("Receive pong message")
 				continue
 			}
 			handler(message)

@@ -3,17 +3,19 @@ package okx_connector
 import (
 	"context"
 	"log"
+	"os"
 	"testing"
 )
 
-const (
-	Apikey     = "60532a79-4aad-40d8-a0ab-89025c54a781"
-	Secretkey  = "D774B3D7CADCD4FDDF715336042AE96C"
-	Passphrase = "Jiv@Hceq&zZJ6c"
-)
+func newClient() *Client {
+	Apikey := os.Getenv("APIKEY")
+	Secretkey := os.Getenv("SECRETKEY")
+	Passphrase := os.Getenv("PASSPHRASE")
+	return NewClient(Apikey, Secretkey, Passphrase)
+}
 
 func Test_SymbolInfo(t *testing.T) {
-	client := NewClient(Apikey, Secretkey, Passphrase)
+	client := newClient()
 	client.Debug = true
 	response, err := client.NewSymbolInfoService().InstType("SPOT").InstId("G-USDT").Do(context.Background())
 	if err != nil {
@@ -23,7 +25,7 @@ func Test_SymbolInfo(t *testing.T) {
 }
 
 func Test_MarketCandles(t *testing.T) {
-	client := NewClient(Apikey, Secretkey, Passphrase)
+	client := newClient()
 	client.Debug = true
 	response, err := client.NewMarketKlinesHisService().InstId("G-USDT").Bar("1s").Do(context.Background())
 	if err != nil {
@@ -33,7 +35,7 @@ func Test_MarketCandles(t *testing.T) {
 }
 
 func Test_SymbolQuotationService(t *testing.T) {
-	client := NewClient(Apikey, Secretkey, Passphrase)
+	client := newClient()
 	client.Debug = true
 	response, err := client.NewSymbolQuotationService().InstId("G-USDT").Do(context.Background())
 	if err != nil {
@@ -43,7 +45,7 @@ func Test_SymbolQuotationService(t *testing.T) {
 }
 
 func Test_MarketDepthService(t *testing.T) {
-	client := NewClient(Apikey, Secretkey, Passphrase)
+	client := newClient()
 	client.Debug = true
 	response, err := client.NewMarketDepthService().InstId("G-USDT").Size(100).Do(context.Background())
 	if err != nil {
@@ -53,7 +55,7 @@ func Test_MarketDepthService(t *testing.T) {
 }
 
 func Test_MarketDepthFullService(t *testing.T) {
-	client := NewClient(Apikey, Secretkey, Passphrase)
+	client := newClient()
 	client.Debug = true
 	response, err := client.NewMarketDepthFullService().InstId("G-USDT").Size(1000).Do(context.Background())
 	if err != nil {

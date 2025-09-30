@@ -231,3 +231,11 @@ func (c *Client) NewMarketDepthService() *MarketDepthService {
 func (c *Client) NewMarketDepthFullService() *MarketDepthFullService {
 	return &MarketDepthFullService{c: c}
 }
+
+func (c *Client) NewAnnouncementTypeService() *AnnouncementTypeService {
+	return &AnnouncementTypeService{c: c}
+}
+
+func (c *Client) NewAnnouncementService() *AnnouncementService {
+	return &AnnouncementService{c: c}
+}

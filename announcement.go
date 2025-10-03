@@ -67,7 +67,7 @@ func (s *AnnouncementService) Do(ctx context.Context, opts ...RequestOption) (re
 	r := &request{
 		method:   http.MethodGet,
 		endpoint: "/api/v5/support/announcements",
-		secType:  secTypeNone,
+		secType:  secTypeSigned,
 	}
 	if s.annType != nil {
 		r.setParam("annType", *s.annType)

@@ -19,7 +19,7 @@ func Test_AnnouncementType(t *testing.T) {
 func Test_Announcement(t *testing.T) {
 	client := newClient()
 	client.Debug = true
-	response, err := client.NewAnnouncementService().AnnType("announcements-new-listings").Page(1).Do(context.Background())
+	response, err := client.NewAnnouncementService().Page(1).Do(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}

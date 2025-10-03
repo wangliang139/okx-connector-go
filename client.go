@@ -44,7 +44,7 @@ const (
 )
 
 func currentTime() string {
-	return time.Now().Format(time.RFC3339)
+	return time.Now().UTC().Format(time.RFC3339)
 }
 
 func currentTimestamp() int64 {

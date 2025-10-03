@@ -8,9 +8,9 @@ import (
 )
 
 func newClient() *Client {
-	Apikey := os.Getenv("APIKEY")
-	Secretkey := os.Getenv("SECRETKEY")
-	Passphrase := os.Getenv("PASSPHRASE")
+	Apikey := os.Getenv("OKX_API_KEY")
+	Secretkey := os.Getenv("OKX_SECRET_KEY")
+	Passphrase := os.Getenv("OKX_PASSPHRASE")
 	return NewClient(Apikey, Secretkey, Passphrase)
 }
 

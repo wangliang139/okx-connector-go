@@ -9,11 +9,11 @@ type Channel string
 type DepthChannel Channel
 
 const (
-	DepthChannelBooks        = "books"
-	DepthChannelbooks5       = "books5"
-	DepthChannelBboTbt       = "bbo-tbt"
-	DepthChannelBooksL2Tbt   = "books-l2-tbt"
-	DepthChannelBooks50L2Tbt = "books50-l2-tbt"
+	DepthChannelBooks        DepthChannel = "books"
+	DepthChannelbooks5       DepthChannel = "books5"
+	DepthChannelBboTbt       DepthChannel = "bbo-tbt"
+	DepthChannelBooksL2Tbt   DepthChannel = "books-l2-tbt"
+	DepthChannelBooks50L2Tbt DepthChannel = "books50-l2-tbt"
 )
 
 func (c DepthChannel) Valid() bool {
@@ -23,34 +23,33 @@ func (c DepthChannel) Valid() bool {
 type KlineChannel Channel
 
 const (
-	KlineChannelCandle1s  = "candle1s"
-	KlineChannelCandle1m  = "candle1m"
-	KlineChannelCandle3m  = "candle3m"
-	KlineChannelCandle5m  = "candle5m"
-	KlineChannelCandle15m = "candle15m"
-	KlineChannelCandle30m = "candle30m"
-	KlineChannelCandle1H  = "candle1H"
-	KlineChannelCandle2H  = "candle2H"
-	KlineChannelCandle4H  = "candle4H"
-	KlineChannelCandle6H  = "candle6H"
-	KlineChannelCandle12H = "candle12H"
-	KlineChannelCandle1D  = "candle1D"
-	KlineChannelCandle2D  = "candle2D"
-	KlineChannelCandle3D  = "candle3D"
-	KlineChannelCandle5D  = "candle5D"
-	KlineChannelCandle1W  = "candle1W"
-	KlineChannelCandle1M  = "candle1M"
-	KlineChannelCandle3M  = "candle3M"
-
-	KlineChannelCandle3Mutc  = "candle3Mutc"
-	KlineChannelCandle1Mutc  = "candle1Mutc"
-	KlineChannelCandle1Wutc  = "candle1Wutc"
-	KlineChannelCandle1Dutc  = "candle1Dutc"
-	KlineChannelCandle2Dutc  = "candle2Dutc"
-	KlineChannelCandle3Dutc  = "candle3Dutc"
-	KlineChannelCandle5Dutc  = "candle5Dutc"
-	KlineChannelCandle12Hutc = "candle12Hutc"
-	KlineChannelCandle6Hutc  = "candle6Hutc"
+	KlineChannelCandle1s     KlineChannel = "candle1s"
+	KlineChannelCandle1m     KlineChannel = "candle1m"
+	KlineChannelCandle3m     KlineChannel = "candle3m"
+	KlineChannelCandle5m     KlineChannel = "candle5m"
+	KlineChannelCandle15m    KlineChannel = "candle15m"
+	KlineChannelCandle30m    KlineChannel = "candle30m"
+	KlineChannelCandle1H     KlineChannel = "candle1H"
+	KlineChannelCandle2H     KlineChannel = "candle2H"
+	KlineChannelCandle4H     KlineChannel = "candle4H"
+	KlineChannelCandle6H     KlineChannel = "candle6H"
+	KlineChannelCandle12H    KlineChannel = "candle12H"
+	KlineChannelCandle1D     KlineChannel = "candle1D"
+	KlineChannelCandle2D     KlineChannel = "candle2D"
+	KlineChannelCandle3D     KlineChannel = "candle3D"
+	KlineChannelCandle5D     KlineChannel = "candle5D"
+	KlineChannelCandle1W     KlineChannel = "candle1W"
+	KlineChannelCandle1M     KlineChannel = "candle1M"
+	KlineChannelCandle3M     KlineChannel = "candle3M"
+	KlineChannelCandle3Mutc  KlineChannel = "candle3Mutc"
+	KlineChannelCandle1Mutc  KlineChannel = "candle1Mutc"
+	KlineChannelCandle1Wutc  KlineChannel = "candle1Wutc"
+	KlineChannelCandle1Dutc  KlineChannel = "candle1Dutc"
+	KlineChannelCandle2Dutc  KlineChannel = "candle2Dutc"
+	KlineChannelCandle3Dutc  KlineChannel = "candle3Dutc"
+	KlineChannelCandle5Dutc  KlineChannel = "candle5Dutc"
+	KlineChannelCandle12Hutc KlineChannel = "candle12Hutc"
+	KlineChannelCandle6Hutc  KlineChannel = "candle6Hutc"
 )
 
 func (c KlineChannel) Valid() bool {

@@ -12,13 +12,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var (
-	// WebsocketTimeout is an interval for sending ping/pong messages if WebsocketKeepalive is enabled
-	WebsocketTimeout = time.Second * 10
-	// WebsocketKeepalive enables sending ping/pong messages to check the connection stability
-	WebsocketKeepalive = false
-)
-
 // WsHandler handle raw websocket message
 type WsHandler func(message []byte)
 
@@ -49,9 +42,11 @@ type SubOpArg struct {
 }
 
 type WebsocketStreamClient struct {
-	Endpoint string
-	Debug    bool
-	Logger   *log.Logger
+	Endpoint        string
+	Debug           bool
+	Logger          *log.Logger
+	Timeout         time.Duration // Timeout for ping/pong messages
+	Keepalive       bool          // Enable ping/pong keepalive
 }
 
 type WebsocketStreamConn struct {
@@ -125,16 +120,20 @@ func (c *WebsocketStreamConn) serve(handler WsHandler, errHandler ErrHandler) (d
 		defer close(doneCh)
 
 		lastResponse := time.Now()
-		if WebsocketKeepalive {
+		if c.Client.Keepalive {
+			timeout := c.Client.Timeout
+			if timeout == 0 {
+				timeout = time.Second * 10 // 默认值
+			}
 			go func(conn *websocket.Conn) {
-				ticker := time.NewTicker(WebsocketTimeout)
+				ticker := time.NewTicker(timeout)
 				defer ticker.Stop()
 				for {
 					select {
 					case <-doneCh:
 						return
 					case <-ticker.C:
-						if time.Since(lastResponse) >= WebsocketTimeout {
+						if time.Since(lastResponse) >= timeout {
 							c.Client.debug("Send ping message")
 							err := conn.WriteMessage(websocket.TextMessage, []byte("ping"))
 							if err != nil {
@@ -188,8 +187,10 @@ func NewWsPublicStreamClient(baseURL ...string) *WebsocketStreamClient {
 		}
 	}
 	return &WebsocketStreamClient{
-		Endpoint: url + "/ws/v5/public",
-		Logger:   log.New(os.Stderr, Name, log.LstdFlags),
+		Endpoint:  url + "/ws/v5/public",
+		Logger:    log.New(os.Stderr, Name, log.LstdFlags),
+		Timeout:   time.Second * 10,
+		Keepalive: true,
 	}
 }
 
@@ -205,8 +206,10 @@ func NewWsPrivateStreamClient(baseURL ...string) *WebsocketStreamClient {
 		}
 	}
 	return &WebsocketStreamClient{
-		Endpoint: url + "/ws/v5/private",
-		Logger:   log.New(os.Stderr, Name, log.LstdFlags),
+		Endpoint:  url + "/ws/v5/private",
+		Logger:    log.New(os.Stderr, Name, log.LstdFlags),
+		Timeout:   time.Second * 10,
+		Keepalive: true,
 	}
 }
 
@@ -222,7 +225,9 @@ func NewWsBusinessStreamClient(baseURL ...string) *WebsocketStreamClient {
 		}
 	}
 	return &WebsocketStreamClient{
-		Endpoint: url + "/ws/v5/business",
-		Logger:   log.New(os.Stderr, Name, log.LstdFlags),
+		Endpoint:  url + "/ws/v5/business",
+		Logger:    log.New(os.Stderr, Name, log.LstdFlags),
+		Timeout:   time.Second * 10,
+		Keepalive: true,
 	}
 }

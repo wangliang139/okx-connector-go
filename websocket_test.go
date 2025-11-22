@@ -39,9 +39,9 @@ func Test_depth(t *testing.T) {
 }
 
 func Test_trade(t *testing.T) {
-	WebsocketKeepalive = true
 	client := NewWsPublicStreamClient()
 	client.Debug = true
+	client.Keepalive = true
 	_, stopCh, err := client.WsTradeServe(context.Background(), []string{"G-USDT"}, "trades", func(event *WsTradeEvent) {
 		log.Printf("%+v", event)
 	}, func(err error) {

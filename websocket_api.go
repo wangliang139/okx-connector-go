@@ -28,6 +28,8 @@ type WebsocketAPIClient struct {
 	Conn           *websocket.Conn
 	Dialer         *websocket.Dialer
 	ReqResponseMap map[string]chan []byte
+	Timeout        time.Duration // Timeout for ping/pong messages
+	Keepalive      bool          // Enable ping/pong keepalive
 }
 
 type WsAPIRateLimit struct {
@@ -43,13 +45,6 @@ type WsAPIErrorResponse struct {
 	ID      string `json:"id"`
 	Message string `json:"msg"`
 }
-
-var (
-	// WebsocketAPITimeout is an interval for sending ping/pong messages if WebsocketKeepalive is enabled
-	WebsocketAPITimeout = time.Second * 60
-	// WebsocketAPIKeepalive enables sending ping/pong messages to check the connection stability
-	WebsocketAPIKeepalive = true
-)
 
 func NewWebsocketAPIClient(apiKey string, apiSecret string, baseURL ...string) *WebsocketAPIClient {
 	// Set default base URL to production WS URL
@@ -73,6 +68,8 @@ func NewWebsocketAPIClient(apiKey string, apiSecret string, baseURL ...string) *
 			HandshakeTimeout:  45 * time.Second,
 			EnableCompression: false,
 		},
+		Timeout:   time.Second * 60,
+		Keepalive: true,
 	}
 }
 
@@ -141,27 +138,31 @@ func (c *WebsocketAPIClient) RequestHandler(req interface{}, handler WsHandler, 
 	if err != nil {
 		return nil, err
 	}
-	stopCh, err = wsApiServe(c.Conn, handler, errHandler)
+	stopCh, err = wsApiServe(c, c.Conn, handler, errHandler)
 	if err != nil {
 		return nil, err
 	}
 	return stopCh, nil
 }
 
-func wsApiServe(c *websocket.Conn, handler WsHandler, errHandler ErrHandler) (stopCh chan struct{}, err error) {
+func wsApiServe(client *WebsocketAPIClient, c *websocket.Conn, handler WsHandler, errHandler ErrHandler) (stopCh chan struct{}, err error) {
 	stopCh = make(chan struct{})
 	go func() {
 		lastResponse := time.Now()
-		if WebsocketAPIKeepalive {
+		if client.Keepalive {
+			timeout := client.Timeout
+			if timeout == 0 {
+				timeout = time.Second * 60 // 默认值
+			}
 			go func(c *websocket.Conn) {
-				ticker := time.NewTicker(WebsocketTimeout)
+				ticker := time.NewTicker(timeout)
 				defer ticker.Stop()
 				for {
 					select {
 					case <-stopCh:
 						return
 					case <-ticker.C:
-						if time.Since(lastResponse) >= WebsocketTimeout {
+						if time.Since(lastResponse) >= timeout {
 							err := c.WriteMessage(websocket.TextMessage, []byte("ping"))
 							if err != nil {
 								return

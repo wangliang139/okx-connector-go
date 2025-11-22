@@ -63,3 +63,23 @@ func Test_MarketDepthFullService(t *testing.T) {
 	}
 	log.Printf("%+v", response)
 }
+
+func Test_AnnouncementType(t *testing.T) {
+	client := newClient()
+	client.Debug = true
+	response, err := client.NewAnnouncementTypeService().Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%+v", response)
+}
+
+func Test_Announcement(t *testing.T) {
+	client := newClient()
+	client.Debug = true
+	response, err := client.NewAnnouncementService().Page(1).Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%+v", response)
+}

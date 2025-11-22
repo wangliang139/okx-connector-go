@@ -42,11 +42,11 @@ type SubOpArg struct {
 }
 
 type WebsocketStreamClient struct {
-	Endpoint        string
-	Debug           bool
-	Logger          *log.Logger
-	Timeout         time.Duration // Timeout for ping/pong messages
-	Keepalive       bool          // Enable ping/pong keepalive
+	BaseURL   string
+	Debug     bool
+	Logger    *log.Logger
+	Timeout   time.Duration // Timeout for ping/pong messages
+	Keepalive bool          // Enable ping/pong keepalive
 }
 
 type WebsocketStreamConn struct {
@@ -60,7 +60,7 @@ func (c *WebsocketStreamClient) debug(format string, v ...interface{}) {
 	}
 }
 
-func (c *WebsocketStreamClient) dail(ctx context.Context) (*WebsocketStreamConn, error) {
+func (c *WebsocketStreamClient) dial(ctx context.Context, path string) (*WebsocketStreamConn, error) {
 	Dialer := websocket.Dialer{
 		Proxy:             http.ProxyFromEnvironment,
 		HandshakeTimeout:  45 * time.Second,
@@ -68,7 +68,8 @@ func (c *WebsocketStreamClient) dail(ctx context.Context) (*WebsocketStreamConn,
 	}
 	headers := http.Header{}
 	headers.Add("User-Agent", fmt.Sprintf("%s/%s", Name, Version))
-	conn, _, err := Dialer.DialContext(ctx, c.Endpoint, headers)
+	endpoint := fmt.Sprintf("%s/%s", c.BaseURL, path)
+	conn, _, err := Dialer.DialContext(ctx, endpoint, headers)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +176,7 @@ func (c *WebsocketStreamConn) serve(handler WsHandler, errHandler ErrHandler) (d
 	return
 }
 
-func NewWsPublicStreamClient(baseURL ...string) *WebsocketStreamClient {
+func NewWsStreamClient(baseURL ...string) *WebsocketStreamClient {
 	// Set default base URL to production WS URL
 	url := "wss://ws.okx.com:8443"
 	if len(baseURL) > 0 {
@@ -187,45 +188,7 @@ func NewWsPublicStreamClient(baseURL ...string) *WebsocketStreamClient {
 		}
 	}
 	return &WebsocketStreamClient{
-		Endpoint:  url + "/ws/v5/public",
-		Logger:    log.New(os.Stderr, Name, log.LstdFlags),
-		Timeout:   time.Second * 10,
-		Keepalive: true,
-	}
-}
-
-func NewWsPrivateStreamClient(baseURL ...string) *WebsocketStreamClient {
-	// Set default base URL to production WS URL
-	url := "wss://ws.okx.com:8443"
-	if len(baseURL) > 0 {
-		for _, u := range baseURL {
-			if len(u) > 0 {
-				url = u
-				break
-			}
-		}
-	}
-	return &WebsocketStreamClient{
-		Endpoint:  url + "/ws/v5/private",
-		Logger:    log.New(os.Stderr, Name, log.LstdFlags),
-		Timeout:   time.Second * 10,
-		Keepalive: true,
-	}
-}
-
-func NewWsBusinessStreamClient(baseURL ...string) *WebsocketStreamClient {
-	// Set default base URL to production WS URL
-	url := "wss://ws.okx.com:8443"
-	if len(baseURL) > 0 {
-		for _, u := range baseURL {
-			if len(u) > 0 {
-				url = u
-				break
-			}
-		}
-	}
-	return &WebsocketStreamClient{
-		Endpoint:  url + "/ws/v5/business",
+		BaseURL:   url,
 		Logger:    log.New(os.Stderr, Name, log.LstdFlags),
 		Timeout:   time.Second * 10,
 		Keepalive: true,

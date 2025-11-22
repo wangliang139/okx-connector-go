@@ -7,8 +7,8 @@ import (
 )
 
 func Test_kline(t *testing.T) {
-	client := NewWsPublicStreamClient()
-	_, stopCh, err := client.WsKlineServe(context.Background(), []string{"G-USDT"}, "candle1s", func(event *WsKlineEvent) {
+	client := NewWsStreamClient()
+	_, stopCh, err := client.WsKlineServe(context.Background(), []string{"SOL-USDT"}, "candle1s", func(event *WsKlineEvent) {
 		log.Printf("%+v", event)
 	}, func(err error) {
 		log.Printf("%+v", err)
@@ -23,8 +23,8 @@ func Test_kline(t *testing.T) {
 }
 
 func Test_depth(t *testing.T) {
-	client := NewWsPublicStreamClient()
-	_, stopCh, err := client.WsDepthServe(context.Background(), []string{"G-USDT"}, "books", func(event *WsDepthEvent) {
+	client := NewWsStreamClient()
+	_, stopCh, err := client.WsDepthServe(context.Background(), []string{"SOL-USDT"}, "books", func(event *WsDepthEvent) {
 		log.Printf("%d, %d", event.Data[0].PrevSeqId, event.Data[0].SeqId)
 	}, func(err error) {
 		log.Printf("%+v", err)
@@ -39,10 +39,27 @@ func Test_depth(t *testing.T) {
 }
 
 func Test_trade(t *testing.T) {
-	client := NewWsPublicStreamClient()
+	client := NewWsStreamClient()
 	client.Debug = true
 	client.Keepalive = true
-	_, stopCh, err := client.WsTradeServe(context.Background(), []string{"G-USDT"}, "trades", func(event *WsTradeEvent) {
+	_, stopCh, err := client.WsTradeServe(context.Background(), []string{"SOL-USDT"}, func(event *WsTradeEvent) {
+		log.Printf("%+v", event)
+	}, func(err error) {
+		log.Printf("%+v", err)
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-stopCh:
+		return
+	}
+}
+
+
+func Test_ticker(t *testing.T) {
+	client := NewWsStreamClient()
+	_, stopCh, err := client.WsTickerServe(context.Background(), []string{"SOL-USDT"}, func(event *WsTickerEvent) {
 		log.Printf("%+v", event)
 	}, func(err error) {
 		log.Printf("%+v", err)

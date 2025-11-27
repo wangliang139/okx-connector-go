@@ -239,3 +239,7 @@ func (c *Client) NewAnnouncementTypeService() *AnnouncementTypeService {
 func (c *Client) NewAnnouncementService() *AnnouncementService {
 	return &AnnouncementService{c: c}
 }
+
+func (c *Client) NewAccountBalanceService() *AccountBalanceService {
+	return &AccountBalanceService{c: c}
+}

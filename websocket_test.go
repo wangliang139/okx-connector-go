@@ -59,7 +59,7 @@ func Test_trade(t *testing.T) {
 
 func Test_ticker(t *testing.T) {
 	client := NewWsStreamClient()
-	_, stopCh, err := client.WsTickerServe(context.Background(), []string{"SOL-USDT"}, func(event *WsTickerEvent) {
+	_, stopCh, err := client.WsTickerServe(context.Background(), []string{"SOL-USDT-SWAP"}, func(event *WsTickerEvent) {
 		log.Printf("%+v", event)
 	}, func(err error) {
 		log.Printf("%+v", err)

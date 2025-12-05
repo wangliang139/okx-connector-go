@@ -120,10 +120,14 @@ func (c *Client) parseRequest(r *request, opts ...RequestOption) (err error) {
 		body = bytes.NewBufferString(bodyString)
 	}
 	if r.secType == secTypeAPIKey || r.secType == secTypeSigned {
-		header.Set("OK-ACCESS-PASSPHRASE", c.Passphrase)
-		header.Set("OK-ACCESS-KEY", c.APIKey)
+		if c.Passphrase != "" {
+			header.Set("OK-ACCESS-PASSPHRASE", c.Passphrase)
+		}
+		if c.APIKey != "" {
+			header.Set("OK-ACCESS-KEY", c.APIKey)
+		}
 	}
-	if r.secType == secTypeSigned {
+	if r.secType == secTypeSigned && c.SecretKey != "" {
 		raw := fmt.Sprintf("%s%s%s", ctime, r.method, r.endpoint)
 		if len(queryString) > 0 {
 			raw = fmt.Sprintf("%s?%s", raw, queryString)
@@ -242,4 +246,32 @@ func (c *Client) NewAnnouncementService() *AnnouncementService {
 
 func (c *Client) NewAccountBalanceService() *AccountBalanceService {
 	return &AccountBalanceService{c: c}
+}
+
+func (c *Client) NewAccountConfigService() *AccountConfigService {
+	return &AccountConfigService{c: c}
+}
+
+func (c *Client) NewAccountLeverageInfoService() *AccountLeverageInfoService {
+	return &AccountLeverageInfoService{c: c}
+}
+
+func (c *Client) NewFundingAssetCurrenciesService() *FundingAssetCurrenciesService {
+	return &FundingAssetCurrenciesService{c: c}
+}
+
+func (c *Client) NewFundingAssetBalancesService() *FundingAssetBalancesService {
+	return &FundingAssetBalancesService{c: c}
+}
+
+func (c *Client) NewFundingAssetValuationService() *FundingAssetValuationService {
+	return &FundingAssetValuationService{c: c}
+}
+
+func (c *Client) NewPositionsService() *PositionsService {
+	return &PositionsService{c: c}
+}
+
+func (c *Client) NewAccountTradeFeeService() *AccountTradeFeeService {
+	return &AccountTradeFeeService{c: c}
 }

@@ -17,7 +17,7 @@ func newClient() *Client {
 func Test_SymbolInfo(t *testing.T) {
 	client := newClient()
 	client.Debug = true
-	response, err := client.NewSymbolInfoService().InstType("SPOT").InstId("G-USDT").Do(context.Background())
+	response, err := client.NewSymbolInfoService().InstType("SWAP").InstId("ETH-USDT-SWAP").Do(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}

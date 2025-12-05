@@ -54,8 +54,7 @@ type SystemStatusService struct {
 	c *Client
 }
 
-type SystemStatusResponse struct {
-}
+type SystemStatusResponse struct{}
 
 // Send the request
 func (s *SystemStatusService) Do(ctx context.Context, opts ...RequestOption) (res *SystemStatusResponse, err error) {
@@ -134,6 +133,8 @@ type SymbolInfo struct {
 	RuleType     string `json:"ruleType"`
 	Normal       string `json:"normal"`
 	PreMarket    string `json:"pre_market"`
+	PosLmtAmt    string `json:"posLmtAmt"`
+	PosLmtPct    string `json:"posLmtPct"`
 	MaxLmtSz     string `json:"maxLmtSz"`
 	MaxMktSz     string `json:"maxMktSz"`
 	MaxLmtAmt    string `json:"maxLmtAmt"`
@@ -149,7 +150,7 @@ func (s *SymbolInfoService) Do(ctx context.Context, opts ...RequestOption) (res 
 	r := &request{
 		method:   http.MethodGet,
 		endpoint: "/api/v5/public/instruments",
-		secType:  secTypeNone,
+		secType:  secTypeSigned,
 	}
 	r.setParam("instType", s.instType)
 	if s.uly != nil {

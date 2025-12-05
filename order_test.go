@@ -25,3 +25,23 @@ func Test_Order(t *testing.T) {
 	}
 	log.Printf("%+v", response)
 }
+
+func Test_Orders7DHistory(t *testing.T) {
+	client := newClient()
+	client.Debug = true
+	response, err := client.NewOrders7DHistoryService().InstType("SWAP").Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%+v", response)
+}
+
+func Test_OrdersHistory3MService(t *testing.T) {
+	client := newClient()
+	client.Debug = true
+	response, err := client.NewOrdersHistory3MService().InstType("SWAP").Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%+v", response)
+}

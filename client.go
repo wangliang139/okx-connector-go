@@ -283,3 +283,11 @@ func (c *Client) NewOpenOrdersService() *OpenOrdersService {
 func (c *Client) NewOrderService() *OrderService {
 	return &OrderService{c: c}
 }
+
+func (c *Client) NewOrders7DHistoryService() *Orders7DHistoryService {
+	return &Orders7DHistoryService{c: c}
+}
+
+func (c *Client) NewOrdersHistory3MService() *OrdersHistory3MService {
+	return &OrdersHistory3MService{c: c}
+}

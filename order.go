@@ -223,3 +223,245 @@ func (s *OrderService) Do(ctx context.Context, opts ...RequestOption) ([]*Order,
 	}
 	return *result, nil
 }
+
+type Orders7DHistoryService struct {
+	c *Client
+
+	instType   string
+	instId     string
+	instFamily string
+	ordType    string
+	state      string
+	category   string
+	after      string
+	before     string
+	begin      string
+	end        string
+	limit      string
+}
+
+func (s *Orders7DHistoryService) InstId(instId string) *Orders7DHistoryService {
+	s.instId = instId
+	return s
+}
+
+func (s *Orders7DHistoryService) InstFamily(instFamily string) *Orders7DHistoryService {
+	s.instFamily = instFamily
+	return s
+}
+
+func (s *Orders7DHistoryService) OrdType(ordType string) *Orders7DHistoryService {
+	s.ordType = ordType
+	return s
+}
+
+func (s *Orders7DHistoryService) State(state string) *Orders7DHistoryService {
+	s.state = state
+	return s
+}
+
+func (s *Orders7DHistoryService) Category(category string) *Orders7DHistoryService {
+	s.category = category
+	return s
+}
+
+func (s *Orders7DHistoryService) After(after string) *Orders7DHistoryService {
+	s.after = after
+	return s
+}
+
+func (s *Orders7DHistoryService) Before(before string) *Orders7DHistoryService {
+	s.before = before
+	return s
+}
+
+func (s *Orders7DHistoryService) Begin(begin string) *Orders7DHistoryService {
+	s.begin = begin
+	return s
+}
+
+func (s *Orders7DHistoryService) End(end string) *Orders7DHistoryService {
+	s.end = end
+	return s
+}
+
+func (s *Orders7DHistoryService) Limit(limit string) *Orders7DHistoryService {
+	s.limit = limit
+	return s
+}
+
+func (s *Orders7DHistoryService) InstType(instType string) *Orders7DHistoryService {
+	s.instType = instType
+	return s
+}
+
+func (s *Orders7DHistoryService) Do(ctx context.Context, opts ...RequestOption) ([]*Order, error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/api/v5/trade/orders-history",
+		secType:  secTypeSigned,
+	}
+	if s.instType != "" {
+		r.setParam("instType", s.instType)
+	}
+	if s.instId != "" {
+		r.setParam("instId", s.instId)
+	}
+	if s.instFamily != "" {
+		r.setParam("instFamily", s.instFamily)
+	}
+	if s.ordType != "" {
+		r.setParam("ordType", s.ordType)
+	}
+	if s.state != "" {
+		r.setParam("state", s.state)
+	}
+	if s.category != "" {
+		r.setParam("category", s.category)
+	}
+	if s.after != "" {
+		r.setParam("after", s.after)
+	}
+	if s.before != "" {
+		r.setParam("before", s.before)
+	}
+	if s.begin != "" {
+		r.setParam("begin", s.begin)
+	}
+	if s.end != "" {
+		r.setParam("end", s.end)
+	}
+	if s.limit != "" {
+		r.setParam("limit", s.limit)
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	result := new([]*Order)
+	if err := json.Unmarshal(data, result); err != nil {
+		return nil, err
+	}
+	return *result, nil
+}
+
+type OrdersHistory3MService struct {
+	c *Client
+
+	instType   string
+	instId     string
+	instFamily string
+	ordType    string
+	state      string
+	category   string
+	after      string
+	before     string
+	begin      string
+	end        string
+	limit      string
+}
+
+func (s *OrdersHistory3MService) InstId(instId string) *OrdersHistory3MService {
+	s.instId = instId
+	return s
+}
+
+func (s *OrdersHistory3MService) InstFamily(instFamily string) *OrdersHistory3MService {
+	s.instFamily = instFamily
+	return s
+}
+
+func (s *OrdersHistory3MService) OrdType(ordType string) *OrdersHistory3MService {
+	s.ordType = ordType
+	return s
+}
+
+func (s *OrdersHistory3MService) State(state string) *OrdersHistory3MService {
+	s.state = state
+	return s
+}
+
+func (s *OrdersHistory3MService) Category(category string) *OrdersHistory3MService {
+	s.category = category
+	return s
+}
+
+func (s *OrdersHistory3MService) After(after string) *OrdersHistory3MService {
+	s.after = after
+	return s
+}
+
+func (s *OrdersHistory3MService) Before(before string) *OrdersHistory3MService {
+	s.before = before
+	return s
+}
+
+func (s *OrdersHistory3MService) Begin(begin string) *OrdersHistory3MService {
+	s.begin = begin
+	return s
+}
+
+func (s *OrdersHistory3MService) End(end string) *OrdersHistory3MService {
+	s.end = end
+	return s
+}
+
+func (s *OrdersHistory3MService) Limit(limit string) *OrdersHistory3MService {
+	s.limit = limit
+	return s
+}
+
+func (s *OrdersHistory3MService) InstType(instType string) *OrdersHistory3MService {
+	s.instType = instType
+	return s
+}
+
+func (s *OrdersHistory3MService) Do(ctx context.Context, opts ...RequestOption) ([]*Order, error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/api/v5/trade/orders-history-archive",
+		secType:  secTypeSigned,
+	}
+	if s.instType != "" {
+		r.setParam("instType", s.instType)
+	}
+	if s.instId != "" {
+		r.setParam("instId", s.instId)
+	}
+	if s.instFamily != "" {
+		r.setParam("instFamily", s.instFamily)
+	}
+	if s.ordType != "" {
+		r.setParam("ordType", s.ordType)
+	}
+	if s.state != "" {
+		r.setParam("state", s.state)
+	}
+	if s.category != "" {
+		r.setParam("category", s.category)
+	}
+	if s.after != "" {
+		r.setParam("after", s.after)
+	}
+	if s.before != "" {
+		r.setParam("before", s.before)
+	}
+	if s.begin != "" {
+		r.setParam("begin", s.begin)
+	}
+	if s.end != "" {
+		r.setParam("end", s.end)
+	}
+	if s.limit != "" {
+		r.setParam("limit", s.limit)
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	result := new([]*Order)
+	if err := json.Unmarshal(data, result); err != nil {
+		return nil, err
+	}
+	return *result, nil
+}

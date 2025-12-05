@@ -275,3 +275,11 @@ func (c *Client) NewPositionsService() *PositionsService {
 func (c *Client) NewAccountTradeFeeService() *AccountTradeFeeService {
 	return &AccountTradeFeeService{c: c}
 }
+
+func (c *Client) NewOpenOrdersService() *OpenOrdersService {
+	return &OpenOrdersService{c: c}
+}
+
+func (c *Client) NewOrderService() *OrderService {
+	return &OrderService{c: c}
+}

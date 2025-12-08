@@ -14,9 +14,9 @@ type OpenOrdersService struct {
 	instFamily string
 	ordType    string
 	state      string
-	after      string
-	before     string
-	limit      string
+	after      int
+	before     int
+	limit      int
 }
 
 func (s *OpenOrdersService) InstId(instId string) *OpenOrdersService {
@@ -39,17 +39,17 @@ func (s *OpenOrdersService) State(state string) *OpenOrdersService {
 	return s
 }
 
-func (s *OpenOrdersService) After(after string) *OpenOrdersService {
+func (s *OpenOrdersService) After(after int) *OpenOrdersService {
 	s.after = after
 	return s
 }
 
-func (s *OpenOrdersService) Before(before string) *OpenOrdersService {
+func (s *OpenOrdersService) Before(before int) *OpenOrdersService {
 	s.before = before
 	return s
 }
 
-func (s *OpenOrdersService) Limit(limit string) *OpenOrdersService {
+func (s *OpenOrdersService) Limit(limit int) *OpenOrdersService {
 	s.limit = limit
 	return s
 }
@@ -66,6 +66,7 @@ type Order struct {
 	Ccy               string             `json:"ccy"`               // 保证金币种，适用于逐仓杠杆及合约模式下的全仓杠杆订单以及交割、永续和期权合约订单。
 	OrdId             string             `json:"ordId"`             // 订单ID
 	ClOrdId           string             `json:"clOrdId"`           // 客户自定义订单ID
+	OrdIdList         []string           `json:"ordIdList"`         // 订单ID列表，当止盈止损存在市价拆单时，会有多个。(策略单字段)
 	Tag               string             `json:"tag"`               // 订单标签
 	Px                string             `json:"px"`                // 委托价格，对于期权，以币(如BTC, ETH)为单位
 	PxUsd             string             `json:"pxUsd"`             // 期权价格，以USD为单位 仅适用于期权，其他业务线返回空字符串""
@@ -96,24 +97,52 @@ type Order struct {
 	LinkedAlgoOrd     *struct {
 		AlgoId string `json:"algoId"` // 策略订单唯一标识
 	} `json:"linkedAlgoOrd"` // 止损订单信息，仅适用于包含限价止盈单的双向止盈止损订单，触发后生成的普通订单
-	StpId              string `json:"stpId"`              // 自成交保护ID 如果自成交保护不适用则返回""（已弃用）
-	StpMode            string `json:"stpMode"`            // 自成交保护模式
-	FeeCcy             string `json:"feeCcy"`             // 手续费币种 对于币币和杠杆的挂单卖单，表示计价币种；其他情况下，表示收取手续费的币种。
-	Fee                string `json:"fee"`                // 手续费金额 对于币币和杠杆（除挂单卖单外）：平台收取的累计手续费，始终为负数。 对于币币和杠杆的挂单卖单、交割、永续和期权：累计手续费和返佣（币币和杠杆挂单卖单始终以计价币种计算）。
-	RebateCcy          string `json:"rebateCcy"`          // 返佣币种 对于币币和杠杆的挂单卖单，表示交易币种；其他情况下，表示支付返佣的币种。
-	Rebate             string `json:"rebate"`             // 返佣金额，仅适用于币币和杠杆 对于挂单卖单：以交易币种为单位的累计手续费和返佣金额。 其他情况下，表示挂单返佣金额，始终为正数，如无返佣则返回""。
-	Source             string `json:"source"`             // 订单来源 6：计划委托策略触发后的生成的普通单 7：止盈止损策略触发后的生成的普通单
-	Category           string `json:"category"`           // 订单种类
-	ReduceOnly         string `json:"reduceOnly"`         // 是否只减仓，true 或 false
-	QuickMgnType       string `json:"quickMgnType"`       // 一键借币类型，仅适用于杠杆逐仓的一键借币模式 manual：手动，auto_borrow：自动借币，auto_repay：自动还币
-	AlgoClOrdId        string `json:"algoClOrdId"`        // 客户自定义策略订单ID。策略订单触发，且策略单有algoClOrdId是有值，否则为""
-	AlgoId             string `json:"algoId"`             // 策略委托单ID，策略订单触发时有值，否则为""
-	IsTpLimit          string `json:"isTpLimit"`          // 是否为限价止盈，true 或 false.
-	UTime              string `json:"uTime"`              // 订单状态更新时间，Unix时间戳的毫秒数格式，如 1597026383085
-	CTime              string `json:"cTime"`              // 订单创建时间，Unix时间戳的毫秒数格式，如 1597026383085
-	CancelSource       string `json:"cancelSource"`       // 订单取消来源的原因枚举值代码
-	CancelSourceReason string `json:"cancelSourceReason"` // 订单取消来源的对应具体原因
-	TradeQuoteCcy      string `json:"tradeQuoteCcy"`      // 用于交易的计价币种。
+	StpId                string `json:"stpId"`                // 自成交保护ID 如果自成交保护不适用则返回""（已弃用）
+	StpMode              string `json:"stpMode"`              // 自成交保护模式
+	FeeCcy               string `json:"feeCcy"`               // 手续费币种 对于币币和杠杆的挂单卖单，表示计价币种；其他情况下，表示收取手续费的币种。
+	Fee                  string `json:"fee"`                  // 手续费金额 对于币币和杠杆（除挂单卖单外）：平台收取的累计手续费，始终为负数。 对于币币和杠杆的挂单卖单、交割、永续和期权：累计手续费和返佣（币币和杠杆挂单卖单始终以计价币种计算）。
+	RebateCcy            string `json:"rebateCcy"`            // 返佣币种 对于币币和杠杆的挂单卖单，表示交易币种；其他情况下，表示支付返佣的币种。
+	Rebate               string `json:"rebate"`               // 返佣金额，仅适用于币币和杠杆 对于挂单卖单：以交易币种为单位的累计手续费和返佣金额。 其他情况下，表示挂单返佣金额，始终为正数，如无返佣则返回""。
+	Source               string `json:"source"`               // 订单来源 6：计划委托策略触发后的生成的普通单 7：止盈止损策略触发后的生成的普通单
+	Category             string `json:"category"`             // 订单种类
+	ReduceOnly           string `json:"reduceOnly"`           // 是否只减仓，true 或 false
+	QuickMgnType         string `json:"quickMgnType"`         // 一键借币类型，仅适用于杠杆逐仓的一键借币模式 manual：手动，auto_borrow：自动借币，auto_repay：自动还币
+	AlgoClOrdId          string `json:"algoClOrdId"`          // 客户自定义策略订单ID。策略订单触发，且策略单有algoClOrdId是有值，否则为""
+	AlgoId               string `json:"algoId"`               // 策略委托单ID，策略订单触发时有值，否则为""
+	IsTpLimit            string `json:"isTpLimit"`            // 是否为限价止盈，true 或 false.
+	UTime                string `json:"uTime"`                // 订单状态更新时间，Unix时间戳的毫秒数格式，如 1597026383085
+	CTime                string `json:"cTime"`                // 订单创建时间，Unix时间戳的毫秒数格式，如 1597026383085
+	CancelSource         string `json:"cancelSource"`         // 订单取消来源的原因枚举值代码
+	CancelSourceReason   string `json:"cancelSourceReason"`   // 订单取消来源的对应具体原因
+	TradeQuoteCcy        string `json:"tradeQuoteCcy"`        // 用于交易的计价币种。
+	CloseFraction        string `json:"closeFraction"`        // 策略委托触发时，平仓的百分比。1 代表100%
+	TriggerPx            string `json:"triggerPx"`            // 计划委托触发价格
+	TriggerPxType        string `json:"triggerPxType"`        // 计划委托触发价类型 last：最新价格 index：指数价格 mark：标记价格
+	OrdPx                string `json:"ordPx"`                // 计划委托单的委托价格
+	ActualSz             string `json:"actualSz"`             // 实际委托量
+	ActualPx             string `json:"actualPx"`             // 实际委托价
+	ActualSide           string `json:"actualSide"`           // 实际触发方向 tp：止盈 sl：止损 仅适用于单向止盈止损委托和双向止盈止损委托
+	TriggerTime          string `json:"triggerTime"`          // 策略委托触发时间，Unix时间戳的毫秒数格式，如 1597026383085
+	PxVar                string `json:"pxVar"`                // 价格比例 仅适用于冰山委托和时间加权委托
+	PxSpread             string `json:"pxSpread"`             // 价距 仅适用于冰山委托和时间加权委托
+	SzLimit              string `json:"szLimit"`              // 单笔数量 仅适用于冰山委托和时间加权委托
+	PxLimit              string `json:"pxLimit"`              // 挂单限制价 仅适用于冰山委托和时间加权委托
+	TimeInterval         string `json:"timeInterval"`         // 下单间隔 仅适用于时间加权委托
+	CallbackRatio        string `json:"callbackRatio"`        // 回调幅度的比例 仅适用于移动止盈止损
+	CallbackSpread       string `json:"callbackSpread"`       // 回调幅度的价距 仅适用于移动止盈止损
+	ActivePx             string `json:"activePx"`             // 移动止盈止损激活价格 仅适用于移动止盈止损
+	MoveTriggerPx        string `json:"moveTriggerPx"`        // 移动止盈止损触发价格 仅适用于移动止盈止损
+	Last                 string `json:"last"`                 // 下单时的最新成交价
+	FailCode             string `json:"failCode"`             // 代表策略触发失败的原因，委托失败时有值，如 51008，对于该接口一直为""
+	AmendPxOnTriggerType string `json:"amendPxOnTriggerType"` // 是否启用开仓价止损，仅适用于分批止盈的止损订单 0：不开启，默认值 1：开启
+	IsTradeBorrowMode    string `json:"isTradeBorrowMode"`    // 是否自动借币 true：自动借币 false：不自动借币 仅适用于计划委托、移动止盈止损和时间加权策略
+	ChaseType            string `json:"chaseType"`            // 追逐类型。仅适用于追逐限价委托。
+	ChaseVal             string `json:"chaseVal"`             // 追逐值。仅适用于追逐限价委托。
+	MaxChaseType         string `json:"maxChaseType"`         // 最大追逐值的类型。仅适用于追逐限价委托。
+	MaxChaseVal          string `json:"maxChaseVal"`          // 最大追逐值。仅适用于追逐限价委托。
+	LinkedOrd            *struct {
+		OrdId string `json:"ordId"` // 订单 ID
+	} `json:"linkedOrd"` // 止盈订单信息，仅适用于止损单，且该止损订单来自包含限价止盈单的双向止盈止损订单
 }
 
 type AttachAlgoOrder struct {
@@ -155,13 +184,13 @@ func (s *OpenOrdersService) Do(ctx context.Context, opts ...RequestOption) ([]*O
 	if s.state != "" {
 		r.setParam("state", s.state)
 	}
-	if s.after != "" {
+	if s.after != 0 {
 		r.setParam("after", s.after)
 	}
-	if s.before != "" {
+	if s.before != 0 {
 		r.setParam("before", s.before)
 	}
-	if s.limit != "" {
+	if s.limit != 0 {
 		r.setParam("limit", s.limit)
 	}
 	data, err := s.c.callAPI(ctx, r, opts...)
@@ -233,11 +262,11 @@ type Orders7DHistoryService struct {
 	ordType    string
 	state      string
 	category   string
-	after      string
-	before     string
-	begin      string
-	end        string
-	limit      string
+	after      int
+	before     int
+	begin      int
+	end        int
+	limit      int
 }
 
 func (s *Orders7DHistoryService) InstId(instId string) *Orders7DHistoryService {
@@ -265,27 +294,27 @@ func (s *Orders7DHistoryService) Category(category string) *Orders7DHistoryServi
 	return s
 }
 
-func (s *Orders7DHistoryService) After(after string) *Orders7DHistoryService {
+func (s *Orders7DHistoryService) After(after int) *Orders7DHistoryService {
 	s.after = after
 	return s
 }
 
-func (s *Orders7DHistoryService) Before(before string) *Orders7DHistoryService {
+func (s *Orders7DHistoryService) Before(before int) *Orders7DHistoryService {
 	s.before = before
 	return s
 }
 
-func (s *Orders7DHistoryService) Begin(begin string) *Orders7DHistoryService {
+func (s *Orders7DHistoryService) Begin(begin int) *Orders7DHistoryService {
 	s.begin = begin
 	return s
 }
 
-func (s *Orders7DHistoryService) End(end string) *Orders7DHistoryService {
+func (s *Orders7DHistoryService) End(end int) *Orders7DHistoryService {
 	s.end = end
 	return s
 }
 
-func (s *Orders7DHistoryService) Limit(limit string) *Orders7DHistoryService {
+func (s *Orders7DHistoryService) Limit(limit int) *Orders7DHistoryService {
 	s.limit = limit
 	return s
 }
@@ -319,19 +348,19 @@ func (s *Orders7DHistoryService) Do(ctx context.Context, opts ...RequestOption) 
 	if s.category != "" {
 		r.setParam("category", s.category)
 	}
-	if s.after != "" {
+	if s.after != 0 {
 		r.setParam("after", s.after)
 	}
-	if s.before != "" {
+	if s.before != 0 {
 		r.setParam("before", s.before)
 	}
-	if s.begin != "" {
+	if s.begin != 0 {
 		r.setParam("begin", s.begin)
 	}
-	if s.end != "" {
+	if s.end != 0 {
 		r.setParam("end", s.end)
 	}
-	if s.limit != "" {
+	if s.limit != 0 {
 		r.setParam("limit", s.limit)
 	}
 	data, err := s.c.callAPI(ctx, r, opts...)
@@ -354,11 +383,11 @@ type OrdersHistory3MService struct {
 	ordType    string
 	state      string
 	category   string
-	after      string
-	before     string
-	begin      string
-	end        string
-	limit      string
+	after      int
+	before     int
+	begin      int
+	end        int
+	limit      int
 }
 
 func (s *OrdersHistory3MService) InstId(instId string) *OrdersHistory3MService {
@@ -386,27 +415,27 @@ func (s *OrdersHistory3MService) Category(category string) *OrdersHistory3MServi
 	return s
 }
 
-func (s *OrdersHistory3MService) After(after string) *OrdersHistory3MService {
+func (s *OrdersHistory3MService) After(after int) *OrdersHistory3MService {
 	s.after = after
 	return s
 }
 
-func (s *OrdersHistory3MService) Before(before string) *OrdersHistory3MService {
+func (s *OrdersHistory3MService) Before(before int) *OrdersHistory3MService {
 	s.before = before
 	return s
 }
 
-func (s *OrdersHistory3MService) Begin(begin string) *OrdersHistory3MService {
+func (s *OrdersHistory3MService) Begin(begin int) *OrdersHistory3MService {
 	s.begin = begin
 	return s
 }
 
-func (s *OrdersHistory3MService) End(end string) *OrdersHistory3MService {
+func (s *OrdersHistory3MService) End(end int) *OrdersHistory3MService {
 	s.end = end
 	return s
 }
 
-func (s *OrdersHistory3MService) Limit(limit string) *OrdersHistory3MService {
+func (s *OrdersHistory3MService) Limit(limit int) *OrdersHistory3MService {
 	s.limit = limit
 	return s
 }
@@ -440,19 +469,96 @@ func (s *OrdersHistory3MService) Do(ctx context.Context, opts ...RequestOption) 
 	if s.category != "" {
 		r.setParam("category", s.category)
 	}
-	if s.after != "" {
+	if s.after != 0 {
 		r.setParam("after", s.after)
 	}
-	if s.before != "" {
+	if s.before != 0 {
 		r.setParam("before", s.before)
 	}
-	if s.begin != "" {
+	if s.begin != 0 {
 		r.setParam("begin", s.begin)
 	}
-	if s.end != "" {
+	if s.end != 0 {
 		r.setParam("end", s.end)
 	}
-	if s.limit != "" {
+	if s.limit != 0 {
+		r.setParam("limit", s.limit)
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	result := new([]*Order)
+	if err := json.Unmarshal(data, result); err != nil {
+		return nil, err
+	}
+	return *result, nil
+}
+
+// /api/v5/trade/orders-algo-pending
+
+type OpenAlgoOrdersService struct {
+	c *Client
+
+	algoId   string
+	instType string
+	instId   string
+	ordType  string
+	after    int
+	before   int
+	limit    int
+}
+
+func (s *OpenAlgoOrdersService) AlgoId(algoId string) *OpenAlgoOrdersService {
+	s.algoId = algoId
+	return s
+}
+
+func (s *OpenAlgoOrdersService) InstType(instType string) *OpenAlgoOrdersService {
+	s.instType = instType
+	return s
+}
+
+func (s *OpenAlgoOrdersService) After(after int) *OpenAlgoOrdersService {
+	s.after = after
+	return s
+}
+
+func (s *OpenAlgoOrdersService) Before(before int) *OpenAlgoOrdersService {
+	s.before = before
+	return s
+}
+
+func (s *OpenAlgoOrdersService) Limit(limit int) *OpenAlgoOrdersService {
+	s.limit = limit
+	return s
+}
+
+func (s *OpenAlgoOrdersService) Do(ctx context.Context, opts ...RequestOption) ([]*Order, error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/api/v5/trade/orders-algo-pending",
+		secType:  secTypeSigned,
+	}
+	if s.algoId != "" {
+		r.setParam("algoId", s.algoId)
+	}
+	if s.instType != "" {
+		r.setParam("instType", s.instType)
+	}
+	if s.instId != "" {
+		r.setParam("instId", s.instId)
+	}
+	if s.ordType != "" {
+		r.setParam("ordType", s.ordType)
+	}
+	if s.after != 0 {
+		r.setParam("after", s.after)
+	}
+	if s.before != 0 {
+		r.setParam("before", s.before)
+	}
+	if s.limit != 0 {
 		r.setParam("limit", s.limit)
 	}
 	data, err := s.c.callAPI(ctx, r, opts...)

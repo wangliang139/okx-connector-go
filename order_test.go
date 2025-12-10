@@ -45,3 +45,13 @@ func Test_OrdersHistory3MService(t *testing.T) {
 	}
 	log.Printf("%+v", response)
 }
+
+func Test_OpenAlgoOrders(t *testing.T) {
+	client := newClient()
+	client.Debug = true
+	response, err := client.NewOpenAlgoOrdersService().InstType("SWAP").Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%+v", response)
+}

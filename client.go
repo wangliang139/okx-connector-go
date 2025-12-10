@@ -291,3 +291,11 @@ func (c *Client) NewOrders7DHistoryService() *Orders7DHistoryService {
 func (c *Client) NewOrdersHistory3MService() *OrdersHistory3MService {
 	return &OrdersHistory3MService{c: c}
 }
+
+func (c *Client) NewOpenAlgoOrdersService() *OpenAlgoOrdersService {
+	return &OpenAlgoOrdersService{c: c}
+}
+
+func (c *Client) NewMarketTradesService() *MarketTradesService {
+	return &MarketTradesService{c: c}
+}

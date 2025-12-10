@@ -577,3 +577,56 @@ func (s *AnnouncementService) Do(ctx context.Context, opts ...RequestOption) (re
 	}
 	return *result, nil
 }
+
+// /api/v5/market/trades
+type MarketTradesService struct {
+	c *Client
+
+	instId *string
+	limit  *int
+}
+
+func (s *MarketTradesService) InstId(instId string) *MarketTradesService {
+	s.instId = &instId
+	return s
+}
+
+func (s *MarketTradesService) Limit(limit int) *MarketTradesService {
+	s.limit = &limit
+	return s
+}
+
+type Trade struct {
+	InstId  string `json:"instId"`
+	TradeId string `json:"tradeId"`
+	Price   string `json:"px"`
+	Size    string `json:"sz"`
+	Side    string `json:"side"`
+	Source  string `json:"source"`
+	Ts      string `json:"ts"`
+}
+
+// Send the request
+func (s *MarketTradesService) Do(ctx context.Context, opts ...RequestOption) ([]*Trade, error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/api/v5/market/trades",
+		secType:  secTypeNone,
+	}
+	if s.instId != nil {
+		r.setParam("instId", *s.instId)
+	}
+	if s.limit != nil {
+		r.setParam("limit", *s.limit)
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	result := new([]*Trade)
+	err = json.Unmarshal(data, result)
+	if err != nil {
+		return nil, err
+	}
+	return *result, nil
+}

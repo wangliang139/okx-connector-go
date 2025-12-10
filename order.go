@@ -519,6 +519,16 @@ func (s *OpenAlgoOrdersService) InstType(instType string) *OpenAlgoOrdersService
 	return s
 }
 
+func (s *OpenAlgoOrdersService) InstId(instId string) *OpenAlgoOrdersService {
+	s.instId = instId
+	return s
+}
+
+func (s *OpenAlgoOrdersService) OrdType(ordType string) *OpenAlgoOrdersService {
+	s.ordType = ordType
+	return s
+}
+
 func (s *OpenAlgoOrdersService) After(after int) *OpenAlgoOrdersService {
 	s.after = after
 	return s

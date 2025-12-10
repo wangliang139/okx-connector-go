@@ -83,3 +83,13 @@ func Test_Announcement(t *testing.T) {
 	}
 	log.Printf("%+v", response)
 }
+
+func Test_MarketTrades(t *testing.T) {
+	client := newClient()
+	client.Debug = true
+	response, err := client.NewMarketTradesService().InstId("G-USDT").Limit(100).Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%+v", response)
+}

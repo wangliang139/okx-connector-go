@@ -425,7 +425,7 @@ type Depth struct {
 }
 
 // Send the request
-func (s *MarketDepthService) Do(ctx context.Context, opts ...RequestOption) (res []*Depth, err error) {
+func (s *MarketDepthService) Do(ctx context.Context, opts ...RequestOption) (*Depth, error) {
 	r := &request{
 		method:   http.MethodGet,
 		endpoint: "/api/v5/market/books",
@@ -449,7 +449,10 @@ func (s *MarketDepthService) Do(ctx context.Context, opts ...RequestOption) (res
 	if err := json.Unmarshal(data, depth); err != nil {
 		return nil, err
 	}
-	return *depth, nil
+	if len(*depth) > 0 {
+		return (*depth)[0], nil
+	}
+	return nil, nil
 }
 
 type MarketDepthFullService struct {
@@ -469,7 +472,7 @@ func (s *MarketDepthFullService) Size(size int) *MarketDepthFullService {
 }
 
 // Send the request
-func (s *MarketDepthFullService) Do(ctx context.Context, opts ...RequestOption) (res []*Depth, err error) {
+func (s *MarketDepthFullService) Do(ctx context.Context, opts ...RequestOption) (res *Depth, err error) {
 	r := &request{
 		method:   http.MethodGet,
 		endpoint: "/api/v5/market/books-full",
@@ -493,7 +496,10 @@ func (s *MarketDepthFullService) Do(ctx context.Context, opts ...RequestOption) 
 	if err := json.Unmarshal(data, depth); err != nil {
 		return nil, err
 	}
-	return *depth, nil
+	if len(*depth) > 0 {
+		return (*depth)[0], nil
+	}
+	return nil, nil
 }
 
 type AnnouncementTypeService struct {
@@ -599,8 +605,8 @@ func (s *MarketTradesService) Limit(limit int) *MarketTradesService {
 type Trade struct {
 	InstId  string `json:"instId"`
 	TradeId string `json:"tradeId"`
-	Price   string `json:"px"`
-	Size    string `json:"sz"`
+	Px      string `json:"px"`
+	Sz      string `json:"sz"`
 	Side    string `json:"side"`
 	Source  string `json:"source"`
 	Ts      string `json:"ts"`

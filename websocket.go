@@ -2,6 +2,9 @@ package okx_connector
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -37,11 +40,29 @@ type SubscribeResponse struct {
 }
 
 type SubOpArg struct {
-	Channel *string `json:"channel,omitempty"`
-	InstId  *string `json:"instId,omitempty"`
+	Channel     string  `json:"channel,omitempty"`
+	InstId      *string `json:"instId,omitempty"`
+	InstType    *string `json:"instType,omitempty"`
+	ExtraParams *string `json:"extraParams,omitempty"`
+}
+
+type loginArg struct {
+	APIKey     string `json:"apiKey"`
+	Passphrase string `json:"passphrase"`
+	Timestamp  string `json:"timestamp"`
+	Sign       string `json:"sign"`
+}
+
+type loginRequest struct {
+	Op   string     `json:"op"`
+	Args []loginArg `json:"args"`
 }
 
 type WebsocketStreamClient struct {
+	APIKey     string
+	APISecret  string
+	Passphrase string
+
 	BaseURL   string
 	Debug     bool
 	Logger    *log.Logger
@@ -78,6 +99,66 @@ func (c *WebsocketStreamClient) dial(ctx context.Context, path string) (*Websock
 		Conn:   conn,
 		Client: c,
 	}, nil
+}
+
+// login performs OKX V5 websocket private channel authentication.
+// It MUST be called before subscribing to any private channel.
+func (c *WebsocketStreamConn) login() error {
+	if c.Client == nil {
+		return fmt.Errorf("websocket client is nil")
+	}
+	if c.Client.APIKey == "" || c.Client.APISecret == "" || c.Client.Passphrase == "" {
+		return fmt.Errorf("apiKey, apiSecret and passphrase are required for private websocket login")
+	}
+
+	// OKX sign raw text: timestamp + HTTP method + request path
+	// For websocket login the method is GET and path is /users/self/verify.
+	timestamp := currentTime()
+	raw := fmt.Sprintf("%s%s%s", timestamp, "GET", "/users/self/verify")
+
+	mac := hmac.New(sha256.New, []byte(c.Client.APISecret))
+	if _, err := mac.Write([]byte(raw)); err != nil {
+		return err
+	}
+	sign := base64.StdEncoding.EncodeToString(mac.Sum(nil))
+
+	req := loginRequest{
+		Op: "login",
+		Args: []loginArg{
+			{
+				APIKey:     c.Client.APIKey,
+				Passphrase: c.Client.Passphrase,
+				Timestamp:  timestamp,
+				Sign:       sign,
+			},
+		},
+	}
+
+	msg, err := json.Marshal(req)
+	if err != nil {
+		return err
+	}
+
+	if err := c.Conn.WriteMessage(websocket.TextMessage, msg); err != nil {
+		return err
+	}
+
+	_, message, err := c.Conn.ReadMessage()
+	if err != nil {
+		return err
+	}
+
+	c.Client.debug("Login response: %s\n", message)
+
+	var response SubscribeResponse
+	if err := json.Unmarshal(message, &response); err != nil {
+		return err
+	}
+	if response.Code != nil && *response.Code != "0" {
+		return &ApiError{Code: *response.Code, Message: *response.Msg}
+	}
+
+	return nil
 }
 
 func (c *WebsocketStreamConn) subscribe(channels []SubOpArg) error {
@@ -176,21 +257,21 @@ func (c *WebsocketStreamConn) serve(handler WsHandler, errHandler ErrHandler) (d
 	return
 }
 
-func NewWsStreamClient(baseURL ...string) *WebsocketStreamClient {
+func NewWsStreamClient(baseURL string, apiKey string, apiSecret string, passphrase string) *WebsocketStreamClient {
 	// Set default base URL to production WS URL
 	url := "wss://ws.okx.com:8443"
 	if len(baseURL) > 0 {
-		for _, u := range baseURL {
-			if len(u) > 0 {
-				url = u
-				break
-			}
+		if len(baseURL) > 0 {
+			url = baseURL
 		}
 	}
 	return &WebsocketStreamClient{
-		BaseURL:   url,
-		Logger:    log.New(os.Stderr, Name, log.LstdFlags),
-		Timeout:   time.Second * 10,
-		Keepalive: true,
+		BaseURL:    url,
+		APIKey:     apiKey,
+		APISecret:  apiSecret,
+		Passphrase: passphrase,
+		Logger:     log.New(os.Stderr, Name, log.LstdFlags),
+		Timeout:    time.Second * 10,
+		Keepalive:  true,
 	}
 }

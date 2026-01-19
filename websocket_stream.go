@@ -7,8 +7,11 @@ import (
 )
 
 type WsEventArg struct {
-	Channel string `json:"channel"`
-	InstId  string `json:"instId"`
+	Channel    string `json:"channel,omitempty"`
+	Uid        string `json:"uid,omitempty"`
+	InstId     string `json:"instId,omitempty"`
+	InstType   string `json:"instType,omitempty"`
+	InstFamily string `json:"instFamily,omitempty"`
 }
 
 // WsKlineEvent define websocket kline event
@@ -33,7 +36,7 @@ func (client *WebsocketStreamClient) WsKlineServe(ctx context.Context, symbols [
 
 	var args []SubOpArg
 	for _, symbol := range symbols {
-		args = append(args, SubOpArg{Channel: ToPtr(string(channel)), InstId: &symbol})
+		args = append(args, SubOpArg{Channel: string(channel), InstId: &symbol})
 	}
 	err = conn.subscribe(args)
 	if err != nil {
@@ -82,7 +85,7 @@ func (client *WebsocketStreamClient) WsDepthServe(ctx context.Context, symbols [
 
 	var args []SubOpArg
 	for _, symbol := range symbols {
-		args = append(args, SubOpArg{Channel: ToPtr(string(channel)), InstId: &symbol})
+		args = append(args, SubOpArg{Channel: string(channel), InstId: &symbol})
 	}
 	err = conn.subscribe(args)
 	if err != nil {
@@ -131,7 +134,7 @@ func (client *WebsocketStreamClient) WsTradeServe(ctx context.Context, symbols [
 
 	var args []SubOpArg
 	for _, symbol := range symbols {
-		args = append(args, SubOpArg{Channel: &channel, InstId: &symbol})
+		args = append(args, SubOpArg{Channel: channel, InstId: &symbol})
 	}
 	err = conn.subscribe(args)
 	if err != nil {
@@ -186,7 +189,7 @@ func (client *WebsocketStreamClient) WsTickerServe(ctx context.Context, symbols 
 
 	var args []SubOpArg
 	for _, symbol := range symbols {
-		args = append(args, SubOpArg{Channel: &channel, InstId: &symbol})
+		args = append(args, SubOpArg{Channel: channel, InstId: &symbol})
 	}
 
 	err = conn.subscribe(args)
@@ -205,4 +208,257 @@ func (client *WebsocketStreamClient) WsTickerServe(ctx context.Context, symbols 
 		handler(event)
 	}
 	return conn.serve(wsHandler, errHandler)
+}
+
+type WsAccountEvent struct{}
+
+type WsAccountHandler func(event *WsAccountEvent)
+
+func (client *WebsocketStreamClient) WsAccountServe(ctx context.Context, handler WsAccountHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
+	channel := "account"
+	conn, err := client.dial(ctx, "ws/v5/private")
+	if err != nil {
+		return
+	}
+
+	if err = conn.login(); err != nil {
+		return
+	}
+
+	args := []SubOpArg{{Channel: channel}}
+
+	err = conn.subscribe(args)
+	if err != nil {
+		return
+	}
+
+	wsHandler := func(message []byte) {
+		client.debug("Receive event: %s", message)
+		event := new(WsAccountEvent)
+		err := json.Unmarshal(message, event)
+		if err != nil {
+			errHandler(err)
+			return
+		}
+		handler(event)
+	}
+	return conn.serve(wsHandler, errHandler)
+}
+
+type WsPositionEvent struct {
+	Arg       WsEventArg `json:"arg"`
+	EventType string     `json:"eventType"`
+	CurPage   int        `json:"curPage"`
+	LastPage  bool       `json:"lastPage"`
+	Data      []Position `json:"data"`
+}
+
+type WsPositionHandler func(event *WsPositionEvent)
+
+func (client *WebsocketStreamClient) WsPositionServe(ctx context.Context, handler WsPositionHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
+	channel := "positions"
+	conn, err := client.dial(ctx, "ws/v5/private")
+	if err != nil {
+		return
+	}
+
+	if err = conn.login(); err != nil {
+		return
+	}
+
+	instType := "ANY"
+	extraParams := "{\"updateInterval\": \"0\"}"
+	args := []SubOpArg{{Channel: channel, InstType: &instType, ExtraParams: &extraParams}}
+
+	err = conn.subscribe(args)
+	if err != nil {
+		return
+	}
+
+	wsHandler := func(message []byte) {
+		client.debug("Receive event: %s", message)
+		event := new(WsPositionEvent)
+		err := json.Unmarshal(message, event)
+		if err != nil {
+			errHandler(err)
+			return
+		}
+		handler(event)
+	}
+	return conn.serve(wsHandler, errHandler)
+}
+
+type WsOrderEvent struct {
+	Arg  WsEventArg `json:"arg"`
+	Data []Order    `json:"data"`
+}
+
+type WsOrderHandler func(event *WsOrderEvent)
+
+func (client *WebsocketStreamClient) WsOrderServe(ctx context.Context, handler WsOrderHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
+	channel := "orders"
+	conn, err := client.dial(ctx, "ws/v5/private")
+	if err != nil {
+		return
+	}
+
+	if err = conn.login(); err != nil {
+		return
+	}
+
+	instType := "ANY"
+	args := []SubOpArg{{Channel: channel, InstType: &instType}}
+
+	err = conn.subscribe(args)
+	if err != nil {
+		return
+	}
+
+	wsHandler := func(message []byte) {
+		client.debug("Receive event: %s", message)
+		event := new(WsOrderEvent)
+		err := json.Unmarshal(message, event)
+		if err != nil {
+			errHandler(err)
+			return
+		}
+		handler(event)
+	}
+	return conn.serve(wsHandler, errHandler)
+}
+
+type WsFillsEvent struct {
+	Arg  WsEventArg `json:"arg"`
+	Data []Fill     `json:"data"`
+}
+
+type Fill struct {
+	InstId   string `json:"instId"`
+	FillSz   string `json:"fillSz"`
+	FillPx   string `json:"fillPx"`
+	Side     string `json:"side"`
+	Ts       string `json:"ts"`
+	OrdId    string `json:"ordId"`
+	ClOrdId  string `json:"clOrdId"`
+	TradeId  string `json:"tradeId"`
+	ExecType string `json:"execType"`
+	Count    string `json:"count"`
+}
+
+type WsFillsHandler func(event *WsFillsEvent)
+
+func (client *WebsocketStreamClient) WsFillsServe(ctx context.Context, handler WsFillsHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
+	channel := "fills"
+	conn, err := client.dial(ctx, "ws/v5/private")
+	if err != nil {
+		return
+	}
+
+	if err = conn.login(); err != nil {
+		return
+	}
+
+	args := []SubOpArg{{Channel: channel}}
+
+	err = conn.subscribe(args)
+	if err != nil {
+		return
+	}
+
+	wsHandler := func(message []byte) {
+		client.debug("Receive event: %s", message)
+		event := new(WsFillsEvent)
+		err := json.Unmarshal(message, event)
+		if err != nil {
+			errHandler(err)
+			return
+		}
+		handler(event)
+	}
+	return conn.serve(wsHandler, errHandler)
+}
+
+type WsUserDataHandler interface {
+	HandleAccountEvent(event *WsAccountEvent)
+	HandlePositionEvent(event *WsPositionEvent)
+	HandleOrderEvent(event *WsOrderEvent)
+	HandleFillsEvent(event *WsFillsEvent)
+}
+
+func (client *WebsocketStreamClient) WsUserDataServe(ctx context.Context, handler WsUserDataHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
+	conn, err := client.dial(ctx, "ws/v5/private")
+	if err != nil {
+		return
+	}
+
+	if err = conn.login(); err != nil {
+		return
+	}
+
+	args := []SubOpArg{
+		{Channel: "account"},
+		{
+			Channel:     "positions",
+			InstType:    ToPtr("ANY"),
+			ExtraParams: ToPtr("{\"updateInterval\": \"0\""),
+		},
+		{Channel: "orders", InstType: ToPtr("ANY")},
+		{Channel: "fills"},
+	}
+
+	err = conn.subscribe(args)
+	if err != nil {
+		return
+	}
+
+	wsHandler := func(message []byte) {
+		client.debug("Receive event: %s", message)
+		e := new(WsSimpleEvent)
+		err := json.Unmarshal(message, e)
+		if err != nil {
+			errHandler(err)
+			return
+		}
+		switch e.Arg.Channel {
+		case "account":
+			event := new(WsAccountEvent)
+			err := json.Unmarshal(message, event)
+			if err != nil {
+				errHandler(err)
+				return
+			}
+			handler.HandleAccountEvent(event)
+		case "positions":
+			event := new(WsPositionEvent)
+			err := json.Unmarshal(message, event)
+			if err != nil {
+				errHandler(err)
+				return
+			}
+			handler.HandlePositionEvent(event)
+		case "orders":
+			event := new(WsOrderEvent)
+			err := json.Unmarshal(message, event)
+			if err != nil {
+				errHandler(err)
+				return
+			}
+			handler.HandleOrderEvent(event)
+		case "fills":
+			event := new(WsFillsEvent)
+			err := json.Unmarshal(message, event)
+			if err != nil {
+				errHandler(err)
+				return
+			}
+			handler.HandleFillsEvent(event)
+		default:
+			errHandler(fmt.Errorf("unknown channel: %s", e.Arg.Channel))
+		}
+	}
+	return conn.serve(wsHandler, errHandler)
+}
+
+type WsSimpleEvent struct {
+	Arg WsEventArg `json:"arg"`
 }

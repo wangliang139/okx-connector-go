@@ -86,6 +86,7 @@ type Position struct {
 	CloseOrderAlgo         []*CloseAlgoOrder `json:"closeOrderAlgo"`         // 平仓策略委托订单。调用策略委托下单，且closeFraction=1 时，该数组才会有值。
 	CTime                  string            `json:"cTime"`                  // 持仓创建时间，Unix时间戳的毫秒数格式，如 1597026383085
 	UTime                  string            `json:"uTime"`                  // 最近一次持仓更新时间，Unix时间戳的毫秒数格式，如 1597026383085
+	PTime                  string            `json:"pTime"`                  // 持仓信息的推送时间，Unix时间戳的毫秒数格式，如 1597026383085
 	BizRefId               string            `json:"bizRefId"`               // 外部业务id，如 体验券id
 	BizRefType             string            `json:"bizRefType"`             // 外部业务类型
 }

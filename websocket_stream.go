@@ -382,7 +382,6 @@ type WsUserDataHandler interface {
 	HandleAccountEvent(event *WsAccountEvent)
 	HandlePositionEvent(event *WsPositionEvent)
 	HandleOrderEvent(event *WsOrderEvent)
-	HandleFillsEvent(event *WsFillsEvent)
 }
 
 func (client *WebsocketStreamClient) WsUserDataServe(ctx context.Context, handler WsUserDataHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
@@ -403,7 +402,6 @@ func (client *WebsocketStreamClient) WsUserDataServe(ctx context.Context, handle
 			ExtraParams: ToPtr("{\"updateInterval\": \"0\""),
 		},
 		{Channel: "orders", InstType: ToPtr("ANY")},
-		{Channel: "fills"},
 	}
 
 	err = conn.subscribe(args)
@@ -444,14 +442,6 @@ func (client *WebsocketStreamClient) WsUserDataServe(ctx context.Context, handle
 				return
 			}
 			handler.HandleOrderEvent(event)
-		case "fills":
-			event := new(WsFillsEvent)
-			err := json.Unmarshal(message, event)
-			if err != nil {
-				errHandler(err)
-				return
-			}
-			handler.HandleFillsEvent(event)
 		default:
 			errHandler(fmt.Errorf("unknown channel: %s", e.Arg.Channel))
 		}
@@ -461,4 +451,40 @@ func (client *WebsocketStreamClient) WsUserDataServe(ctx context.Context, handle
 
 type WsSimpleEvent struct {
 	Arg WsEventArg `json:"arg"`
+}
+
+type WsCommonHandler func(channel string, arg WsEventArg, rawMessage []byte)
+
+func (client *WebsocketStreamClient) WsCommonServe(ctx context.Context, path string, isPrivate bool, channels []SubOpArg, handler WsCommonHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
+	if len(channels) == 0 {
+		return nil, nil, fmt.Errorf("channels is empty")
+	}
+
+	conn, err := client.dial(ctx, path)
+	if err != nil {
+		return
+	}
+
+	if isPrivate {
+		if err = conn.login(); err != nil {
+			return
+		}
+	}
+
+	err = conn.subscribe(channels)
+	if err != nil {
+		return
+	}
+
+	wsHandler := func(message []byte) {
+		client.debug("Receive event: %s", message)
+		e := new(WsSimpleEvent)
+		err := json.Unmarshal(message, e)
+		if err != nil {
+			errHandler(err)
+			return
+		}
+		handler(e.Arg.Channel, e.Arg, message)
+	}
+	return conn.serve(wsHandler, errHandler)
 }

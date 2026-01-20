@@ -43,17 +43,12 @@ const (
 	recvWindowKey = "recvWindow"
 )
 
-func currentTime() string {
+func currentRFC3339Time() string {
 	return time.Now().UTC().Format(time.RFC3339)
 }
 
-func currentTimestamp() int64 {
-	return FormatTimestamp(time.Now())
-}
-
-// FormatTimestamp formats a time into Unix timestamp in milliseconds, as requested by Binance.
-func FormatTimestamp(t time.Time) int64 {
-	return t.UnixNano() / int64(time.Millisecond)
+func currentUnixTime() string {
+	return fmt.Sprintf("%d", time.Now().Unix())
 }
 
 func PrettyPrint(i interface{}) string {
@@ -67,7 +62,7 @@ func (c *Client) debug(format string, v ...interface{}) {
 	}
 }
 
-// Create client function for initialising new Binance client
+// Create client function for initialising new Okx client
 func NewClient(apiKey, secretKey, passphrase string, baseURL ...string) *Client {
 	url := "https://www.okx.com"
 
@@ -100,7 +95,7 @@ func (c *Client) parseRequest(r *request, opts ...RequestOption) (err error) {
 		return err
 	}
 
-	ctime := currentTime()
+	ctime := currentUnixTime()
 
 	fullURL := fmt.Sprintf("%s%s", c.BaseURL, r.endpoint)
 	if r.recvWindow > 0 {

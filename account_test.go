@@ -3,6 +3,7 @@ package okx_connector
 import (
 	"context"
 	"log"
+	"os"
 	"testing"
 )
 
@@ -44,4 +45,26 @@ func Test_AccountTradeFee(t *testing.T) {
 		t.Fatal(err)
 	}
 	log.Printf("%+v", response)
+}
+
+func Test_WsAccountServe(t *testing.T) {
+	Apikey := os.Getenv("OKX_API_KEY")
+	Secretkey := os.Getenv("OKX_SECRET_KEY")
+	Passphrase := os.Getenv("OKX_PASSPHRASE")
+	client := NewWsStreamClient(WithAPIAuth(Apikey, Secretkey, Passphrase))
+	client.Debug = true
+	doneCh, stopCh, err := client.WsAccountServe(context.Background(), func(event *WsAccountEvent) {
+		log.Printf("%+v", event)
+	}, func(err error) {
+		log.Printf("%+v", err)
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-doneCh:
+		return
+	case <-stopCh:
+		return
+	}
 }

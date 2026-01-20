@@ -113,7 +113,7 @@ func (c *WebsocketStreamConn) login() error {
 
 	// OKX sign raw text: timestamp + HTTP method + request path
 	// For websocket login the method is GET and path is /users/self/verify.
-	timestamp := currentTime()
+	timestamp := currentUnixTime()
 	raw := fmt.Sprintf("%s%s%s", timestamp, "GET", "/users/self/verify")
 
 	mac := hmac.New(sha256.New, []byte(c.Client.APISecret))
@@ -257,21 +257,33 @@ func (c *WebsocketStreamConn) serve(handler WsHandler, errHandler ErrHandler) (d
 	return
 }
 
-func NewWsStreamClient(baseURL string, apiKey string, apiSecret string, passphrase string) *WebsocketStreamClient {
+func WithBaseURL(baseURL string) func(*WebsocketStreamClient) {
+	return func(c *WebsocketStreamClient) {
+		c.BaseURL = baseURL
+	}
+}
+
+func WithAPIAuth(apiKey string, apiSecret string, passphrase string) func(*WebsocketStreamClient) {
+	return func(c *WebsocketStreamClient) {
+		c.APIKey = apiKey
+		c.APISecret = apiSecret
+		c.Passphrase = passphrase
+	}
+}
+
+func NewWsStreamClient(opts ...func(*WebsocketStreamClient)) *WebsocketStreamClient {
 	// Set default base URL to production WS URL
 	url := "wss://ws.okx.com:8443"
-	if len(baseURL) > 0 {
-		if len(baseURL) > 0 {
-			url = baseURL
-		}
-	}
-	return &WebsocketStreamClient{
+	client := &WebsocketStreamClient{
 		BaseURL:    url,
-		APIKey:     apiKey,
-		APISecret:  apiSecret,
-		Passphrase: passphrase,
 		Logger:     log.New(os.Stderr, Name, log.LstdFlags),
 		Timeout:    time.Second * 10,
 		Keepalive:  true,
 	}
+
+	for _, opt := range opts {
+		opt(client)
+	}
+
+	return client
 }

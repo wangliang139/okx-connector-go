@@ -48,7 +48,7 @@ type WsAPIErrorResponse struct {
 
 func NewWebsocketAPIClient(apiKey string, apiSecret string, baseURL ...string) *WebsocketAPIClient {
 	// Set default base URL to production WS URL
-	url := "wss://ws-api.binance.com:443/ws-api/v3"
+	url := "wss://ws.okx.com:8443"
 
 	if len(baseURL) > 0 {
 		for _, u := range baseURL {
@@ -84,7 +84,7 @@ func (c *WebsocketAPIClient) Connect() error {
 		return err
 	}
 
-	fmt.Println("Connected to Binance Websocket API")
+	fmt.Println("Connected to Okx Websocket API")
 	c.Conn = conn
 
 	c.ReqResponseMap = make(map[string]chan []byte)

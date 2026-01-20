@@ -405,7 +405,7 @@ func (client *WebsocketStreamClient) WsUserDataServe(ctx context.Context, handle
 		{
 			Channel:     "positions",
 			InstType:    ToPtr("ANY"),
-			ExtraParams: ToPtr("{\"updateInterval\": \"0\""),
+			ExtraParams: ToPtr("{\"updateInterval\": \"0\"}"),
 		},
 		{Channel: "orders", InstType: ToPtr("ANY")},
 	}

@@ -53,9 +53,8 @@ func Test_WsAccountServe(t *testing.T) {
 	Passphrase := os.Getenv("OKX_PASSPHRASE")
 	client := NewWsStreamClient(WithAPIAuth(Apikey, Secretkey, Passphrase))
 	client.Debug = true
-	doneCh, stopCh, err := client.WsAccountServe(context.Background(), func(event *WsAccountEvent) {
-		log.Printf("%+v", event)
-	}, func(err error) {
+	handler := &TestWsUserDataHandler{}
+	doneCh, stopCh, err := client.WsUserDataServe(context.Background(), handler, func(err error) {
 		log.Printf("%+v", err)
 	})
 	if err != nil {
@@ -67,4 +66,19 @@ func Test_WsAccountServe(t *testing.T) {
 	case <-stopCh:
 		return
 	}
+}
+
+type TestWsUserDataHandler struct {
+}
+
+func (h *TestWsUserDataHandler) HandleAccountEvent(event *WsAccountEvent) {
+	log.Printf("%+v", event)
+}
+
+func (h *TestWsUserDataHandler) HandlePositionEvent(event *WsPositionEvent) {
+	log.Printf("%+v", event)
+}
+
+func (h *TestWsUserDataHandler) HandleOrderEvent(event *WsOrderEvent) {
+	log.Printf("%+v", event)
 }

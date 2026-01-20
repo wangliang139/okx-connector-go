@@ -448,8 +448,6 @@ func (client *WebsocketStreamClient) WsUserDataServe(ctx context.Context, handle
 				return
 			}
 			handler.HandleOrderEvent(event)
-		default:
-			errHandler(fmt.Errorf("unknown channel: %s", e.Arg.Channel))
 		}
 	}
 	return conn.serve(wsHandler, errHandler)

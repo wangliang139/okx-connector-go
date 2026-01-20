@@ -210,7 +210,13 @@ func (client *WebsocketStreamClient) WsTickerServe(ctx context.Context, symbols 
 	return conn.serve(wsHandler, errHandler)
 }
 
-type WsAccountEvent struct{}
+type WsAccountEvent struct {
+	Arg       WsEventArg       `json:"arg"`
+	EventType string           `json:"eventType"`
+	CurPage   int              `json:"curPage"`
+	LastPage  bool             `json:"lastPage"`
+	Data      []AccountBalance `json:"data"`
+}
 
 type WsAccountHandler func(event *WsAccountEvent)
 

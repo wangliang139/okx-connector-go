@@ -477,7 +477,10 @@ func (client *WebsocketStreamClient) WsUserDataServe(ctx context.Context, handle
 	}
 
 	args := []SubOpArg{
-		{Channel: "account"},
+		{
+			Channel: "account", 
+			ExtraParams: ToPtr("{\"updateInterval\": \"0\"}"),
+		},
 		{
 			Channel:     "positions",
 			InstType:    ToPtr("ANY"),

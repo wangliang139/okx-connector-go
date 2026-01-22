@@ -71,17 +71,17 @@ func Test_WsAccountServe(t *testing.T) {
 type TestWsUserDataHandler struct{}
 
 func (h *TestWsUserDataHandler) HandleAccountEvent(event *WsAccountEvent) {
-	log.Printf("%+v", event)
+	// log.Printf("%+v", event)
 }
 
 func (h *TestWsUserDataHandler) HandlePositionEvent(event *WsPositionEvent) {
-	log.Printf("%+v", event)
+	// log.Printf("%+v", event)
 }
 
 func (h *TestWsUserDataHandler) HandleOrderEvent(event *WsOrderEvent) {
-	log.Printf("%+v", event)
+	// log.Printf("%+v", event)
 }
 
 func (h *TestWsUserDataHandler) HandleBalanceAndPositionEvent(event *WsBalanceAndPositionEvent) {
-	log.Printf("%+v", event)
+	// log.Printf("%+v", event)
 }

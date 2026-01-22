@@ -62,27 +62,59 @@ func (c *Client) debug(format string, v ...interface{}) {
 	}
 }
 
+func WithApiBaseURL(baseURL string) func(*Client) {
+	return func(c *Client) {
+		c.BaseURL = baseURL
+	}
+}
+
+func WithApiAPIAuth(apiKey, secretKey, passphrase string) func(*Client) {
+	return func(c *Client) {
+		c.APIKey = apiKey
+		c.SecretKey = secretKey
+		c.Passphrase = passphrase
+	}
+}
+
+func WithApiHTTPClient(httpClient *http.Client) func(*Client) {
+	return func(c *Client) {
+		c.HTTPClient = httpClient
+	}
+}
+
+func WithApiLogger(logger *log.Logger) func(*Client) {
+	return func(c *Client) {
+		c.Logger = logger
+	}
+}
+
+func WithApiDebug(debug bool) func(*Client) {
+	return func(c *Client) {
+		c.Debug = debug
+	}
+}
+
+func WithApiTimeOffset(timeOffset int64) func(*Client) {
+	return func(c *Client) {
+		c.TimeOffset = timeOffset
+	}
+}
+
 // Create client function for initialising new Okx client
-func NewClient(apiKey, secretKey, passphrase string, baseURL ...string) *Client {
+func NewClient(opts ...func(*Client)) *Client {
 	url := "https://www.okx.com"
 
-	if len(baseURL) > 0 {
-		for _, u := range baseURL {
-			if len(u) > 0 {
-				url = u
-				break
-			}
-		}
-	}
-
-	return &Client{
-		APIKey:     apiKey,
-		SecretKey:  secretKey,
-		Passphrase: passphrase,
+	client := &Client{
 		BaseURL:    url,
 		HTTPClient: http.DefaultClient,
 		Logger:     log.New(os.Stderr, Name, log.LstdFlags),
 	}
+
+	for _, opt := range opts {
+		opt(client)
+	}
+
+	return client
 }
 
 func (c *Client) parseRequest(r *request, opts ...RequestOption) (err error) {

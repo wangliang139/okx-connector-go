@@ -51,7 +51,7 @@ func Test_WsAccountServe(t *testing.T) {
 	Apikey := os.Getenv("OKX_API_KEY")
 	Secretkey := os.Getenv("OKX_SECRET_KEY")
 	Passphrase := os.Getenv("OKX_PASSPHRASE")
-	client := NewWsStreamClient(WithAPIAuth(Apikey, Secretkey, Passphrase))
+	client := NewWsStreamClient(WithWsAPIAuth(Apikey, Secretkey, Passphrase))
 	client.Debug = true
 	handler := &TestWsUserDataHandler{}
 	doneCh, stopCh, err := client.WsUserDataServe(context.Background(), handler, func(err error) {

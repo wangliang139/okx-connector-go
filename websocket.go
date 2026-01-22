@@ -257,13 +257,13 @@ func (c *WebsocketStreamConn) serve(handler WsHandler, errHandler ErrHandler) (d
 	return
 }
 
-func WithBaseURL(baseURL string) func(*WebsocketStreamClient) {
+func WithWsBaseURL(baseURL string) func(*WebsocketStreamClient) {
 	return func(c *WebsocketStreamClient) {
 		c.BaseURL = baseURL
 	}
 }
 
-func WithAPIAuth(apiKey string, apiSecret string, passphrase string) func(*WebsocketStreamClient) {
+func WithWsAPIAuth(apiKey string, apiSecret string, passphrase string) func(*WebsocketStreamClient) {
 	return func(c *WebsocketStreamClient) {
 		c.APIKey = apiKey
 		c.APISecret = apiSecret

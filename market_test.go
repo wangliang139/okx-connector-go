@@ -11,7 +11,7 @@ func newClient() *Client {
 	Apikey := os.Getenv("OKX_API_KEY")
 	Secretkey := os.Getenv("OKX_SECRET_KEY")
 	Passphrase := os.Getenv("OKX_PASSPHRASE")
-	return NewClient(Apikey, Secretkey, Passphrase)
+	return NewClient(WithApiAPIAuth(Apikey, Secretkey, Passphrase))
 }
 
 func Test_SymbolInfo(t *testing.T) {

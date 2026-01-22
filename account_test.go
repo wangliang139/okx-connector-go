@@ -30,7 +30,7 @@ func Test_AccountConfig(t *testing.T) {
 func Test_AccountLeverageInfo(t *testing.T) {
 	client := newClient()
 	client.Debug = true
-	response, err := client.NewAccountLeverageInfoService().InstId("ETH-USDT-SWAP").MgnMode("cross").Do(context.Background())
+	response, err := client.NewAccountLeverageInfoService().MgnMode("cross").Do(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,8 +68,7 @@ func Test_WsAccountServe(t *testing.T) {
 	}
 }
 
-type TestWsUserDataHandler struct {
-}
+type TestWsUserDataHandler struct{}
 
 func (h *TestWsUserDataHandler) HandleAccountEvent(event *WsAccountEvent) {
 	log.Printf("%+v", event)
@@ -80,5 +79,9 @@ func (h *TestWsUserDataHandler) HandlePositionEvent(event *WsPositionEvent) {
 }
 
 func (h *TestWsUserDataHandler) HandleOrderEvent(event *WsOrderEvent) {
+	log.Printf("%+v", event)
+}
+
+func (h *TestWsUserDataHandler) HandleBalanceAndPositionEvent(event *WsBalanceAndPositionEvent) {
 	log.Printf("%+v", event)
 }

@@ -93,3 +93,13 @@ func Test_MarketTrades(t *testing.T) {
 	}
 	log.Printf("%+v", response)
 }
+
+func Test_MarketTickers(t *testing.T) {
+	client := newClient()
+	client.Debug = true
+	response, err := client.NewMarketTickersService().InstType("SWAP").Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%+v", response)
+}

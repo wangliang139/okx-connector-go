@@ -294,3 +294,7 @@ func (c *Client) NewOpenAlgoOrdersService() *OpenAlgoOrdersService {
 func (c *Client) NewMarketTradesService() *MarketTradesService {
 	return &MarketTradesService{c: c}
 }
+
+func (c *Client) NewMarketTickersService() *MarketTickersService {
+	return &MarketTickersService{c: c}
+}

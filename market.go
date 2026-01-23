@@ -819,10 +819,10 @@ func (s *MarkPriceService) InstId(instId string) *MarkPriceService {
 }
 
 type MarkPrice struct {
-	InstType  string `json:"instType"`
-	InstId    string `json:"instId"`
-	MarkPrice string `json:"markPrice"`
-	Ts        string `json:"ts"`
+	InstType string `json:"instType"`
+	InstId   string `json:"instId"`
+	MarkPx   string `json:"markPx"`
+	Ts       string `json:"ts"`
 }
 
 func (s *MarkPriceService) Do(ctx context.Context, opts ...RequestOption) ([]*MarkPrice, error) {

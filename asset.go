@@ -2,9 +2,10 @@ package okx_connector
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"strings"
+
+	"github.com/bytedance/sonic"
 )
 
 type FundingAssetCurrenciesService struct {
@@ -63,7 +64,7 @@ func (s *FundingAssetCurrenciesService) Do(ctx context.Context, opts ...RequestO
 		return nil, err
 	}
 	result := new([]*FundingAssetCurrency)
-	if err := json.Unmarshal(data, result); err != nil {
+	if err := sonic.Unmarshal(data, result); err != nil {
 		return nil, err
 	}
 	return *result, nil
@@ -103,7 +104,7 @@ func (s *FundingAssetBalancesService) Do(ctx context.Context, opts ...RequestOpt
 		return nil, err
 	}
 	result := new([]*FundingAssetBalance)
-	if err := json.Unmarshal(data, result); err != nil {
+	if err := sonic.Unmarshal(data, result); err != nil {
 		return nil, err
 	}
 	return *result, nil
@@ -148,7 +149,7 @@ func (s *FundingAssetValuationService) Do(ctx context.Context, opts ...RequestOp
 		return nil, err
 	}
 	result := new([]*FundingAssetValuation)
-	if err := json.Unmarshal(data, result); err != nil {
+	if err := sonic.Unmarshal(data, result); err != nil {
 		return nil, err
 	}
 	if len(*result) > 0 {

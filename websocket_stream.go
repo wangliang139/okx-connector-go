@@ -2,8 +2,9 @@ package okx_connector
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+
+	"github.com/bytedance/sonic"
 )
 
 type WsEventArg struct {
@@ -46,7 +47,7 @@ func (client *WebsocketStreamClient) WsKlineServe(ctx context.Context, symbols [
 	wsHandler := func(message []byte) {
 		client.debug("Receive event: %s", message)
 		event := new(WsKlineEvent)
-		err := json.Unmarshal(message, event)
+		err := sonic.Unmarshal(message, event)
 		if err != nil {
 			errHandler(err)
 			return
@@ -95,7 +96,7 @@ func (client *WebsocketStreamClient) WsDepthServe(ctx context.Context, symbols [
 	wsHandler := func(message []byte) {
 		client.debug("Receive event: %s", message)
 		event := new(WsDepthEvent)
-		err := json.Unmarshal(message, event)
+		err := sonic.Unmarshal(message, event)
 		if err != nil {
 			errHandler(err)
 			return
@@ -144,7 +145,7 @@ func (client *WebsocketStreamClient) WsTradeServe(ctx context.Context, symbols [
 	wsHandler := func(message []byte) {
 		client.debug("Receive event: %s", message)
 		event := new(WsTradeEvent)
-		err := json.Unmarshal(message, event)
+		err := sonic.Unmarshal(message, event)
 		if err != nil {
 			errHandler(err)
 			return
@@ -200,7 +201,7 @@ func (client *WebsocketStreamClient) WsTickerServe(ctx context.Context, symbols 
 	wsHandler := func(message []byte) {
 		client.debug("Receive event: %s", message)
 		event := new(WsTickerEvent)
-		err := json.Unmarshal(message, event)
+		err := sonic.Unmarshal(message, event)
 		if err != nil {
 			errHandler(err)
 			return
@@ -241,7 +242,7 @@ func (client *WebsocketStreamClient) WsAccountServe(ctx context.Context, handler
 	wsHandler := func(message []byte) {
 		client.debug("Receive event: %s", message)
 		event := new(WsAccountEvent)
-		err := json.Unmarshal(message, event)
+		err := sonic.Unmarshal(message, event)
 		if err != nil {
 			errHandler(err)
 			return
@@ -284,7 +285,7 @@ func (client *WebsocketStreamClient) WsPositionServe(ctx context.Context, handle
 	wsHandler := func(message []byte) {
 		client.debug("Receive event: %s", message)
 		event := new(WsPositionEvent)
-		err := json.Unmarshal(message, event)
+		err := sonic.Unmarshal(message, event)
 		if err != nil {
 			errHandler(err)
 			return
@@ -323,7 +324,7 @@ func (client *WebsocketStreamClient) WsOrderServe(ctx context.Context, handler W
 	wsHandler := func(message []byte) {
 		client.debug("Receive event: %s", message)
 		event := new(WsOrderEvent)
-		err := json.Unmarshal(message, event)
+		err := sonic.Unmarshal(message, event)
 		if err != nil {
 			errHandler(err)
 			return
@@ -374,7 +375,7 @@ func (client *WebsocketStreamClient) WsFillsServe(ctx context.Context, handler W
 	wsHandler := func(message []byte) {
 		client.debug("Receive event: %s", message)
 		event := new(WsFillsEvent)
-		err := json.Unmarshal(message, event)
+		err := sonic.Unmarshal(message, event)
 		if err != nil {
 			errHandler(err)
 			return
@@ -449,7 +450,7 @@ func (client *WebsocketStreamClient) WsBalanceAndPositionServe(ctx context.Conte
 	wsHandler := func(message []byte) {
 		client.debug("Receive event: %s", message)
 		event := new(WsBalanceAndPositionEvent)
-		err := json.Unmarshal(message, event)
+		err := sonic.Unmarshal(message, event)
 		if err != nil {
 			errHandler(err)
 			return
@@ -478,7 +479,7 @@ func (client *WebsocketStreamClient) WsUserDataServe(ctx context.Context, handle
 
 	args := []SubOpArg{
 		{
-			Channel: "account", 
+			Channel:     "account",
 			ExtraParams: ToPtr("{\"updateInterval\": \"0\"}"),
 		},
 		{
@@ -498,7 +499,7 @@ func (client *WebsocketStreamClient) WsUserDataServe(ctx context.Context, handle
 	wsHandler := func(message []byte) {
 		client.debug("Receive event: %s", message)
 		e := new(WsSimpleEvent)
-		err := json.Unmarshal(message, e)
+		err := sonic.Unmarshal(message, e)
 		if err != nil {
 			errHandler(err)
 			return
@@ -506,7 +507,7 @@ func (client *WebsocketStreamClient) WsUserDataServe(ctx context.Context, handle
 		switch e.Arg.Channel {
 		case "account":
 			event := new(WsAccountEvent)
-			err := json.Unmarshal(message, event)
+			err := sonic.Unmarshal(message, event)
 			if err != nil {
 				errHandler(err)
 				return
@@ -514,7 +515,7 @@ func (client *WebsocketStreamClient) WsUserDataServe(ctx context.Context, handle
 			handler.HandleAccountEvent(event)
 		case "positions":
 			event := new(WsPositionEvent)
-			err := json.Unmarshal(message, event)
+			err := sonic.Unmarshal(message, event)
 			if err != nil {
 				errHandler(err)
 				return
@@ -522,7 +523,7 @@ func (client *WebsocketStreamClient) WsUserDataServe(ctx context.Context, handle
 			handler.HandlePositionEvent(event)
 		case "orders":
 			event := new(WsOrderEvent)
-			err := json.Unmarshal(message, event)
+			err := sonic.Unmarshal(message, event)
 			if err != nil {
 				errHandler(err)
 				return
@@ -530,7 +531,7 @@ func (client *WebsocketStreamClient) WsUserDataServe(ctx context.Context, handle
 			handler.HandleOrderEvent(event)
 		case "balance_and_position":
 			event := new(WsBalanceAndPositionEvent)
-			err := json.Unmarshal(message, event)
+			err := sonic.Unmarshal(message, event)
 			if err != nil {
 				errHandler(err)
 				return
@@ -571,7 +572,7 @@ func (client *WebsocketStreamClient) WsCommonServe(ctx context.Context, path str
 	wsHandler := func(message []byte) {
 		client.debug("Receive event: %s", message)
 		e := new(WsSimpleEvent)
-		err := json.Unmarshal(message, e)
+		err := sonic.Unmarshal(message, e)
 		if err != nil {
 			errHandler(err)
 			return

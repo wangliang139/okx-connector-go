@@ -18,6 +18,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/gorilla/websocket"
 )
 
@@ -108,7 +109,7 @@ func (c *WebsocketAPIClient) startReader() {
 // Handler function to handle responses
 func (c *WebsocketAPIClient) Handler(message []byte) {
 	var response WsAPIErrorResponse
-	err := json.Unmarshal(message, &response)
+	err := sonic.Unmarshal(message, &response)
 	if err != nil {
 		log.Println("Error unmarshaling:", err)
 		return
@@ -279,7 +280,7 @@ func (s *TestConnectivityService) Do(ctx context.Context) (*TestConnectivityResp
 	select {
 	case response := <-messageCh:
 		var pingResponse TestConnectivityResponse
-		err = json.Unmarshal(response, &pingResponse)
+		err = sonic.Unmarshal(response, &pingResponse)
 		if err != nil {
 			return nil, err
 		}
@@ -322,7 +323,7 @@ func (s *CheckServerTimeService) Do(ctx context.Context) (*CheckServerTimeRespon
 	select {
 	case response := <-messageCh:
 		var timeResponse CheckServerTimeResponse
-		err = json.Unmarshal(response, &timeResponse)
+		err = sonic.Unmarshal(response, &timeResponse)
 		if err != nil {
 			return nil, err
 		}
@@ -389,7 +390,7 @@ func (s *ExchangeInformationService) Do(ctx context.Context) (*ExchangeInformati
 
 	handler := func(message []byte) {
 		var response ExchangeInformationResponse
-		err := json.Unmarshal(message, &response)
+		err := sonic.Unmarshal(message, &response)
 		if err != nil {
 			fmt.Println("Error unmarshaling:", err)
 			return

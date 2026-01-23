@@ -330,3 +330,11 @@ func (c *Client) NewMarketTradesService() *MarketTradesService {
 func (c *Client) NewMarketTickersService() *MarketTickersService {
 	return &MarketTickersService{c: c}
 }
+
+func (c *Client) NewPositionTiersService() *PositionTiersService {
+	return &PositionTiersService{c: c}
+}
+
+func (c *Client) NewMarkPriceService() *MarkPriceService {
+	return &MarkPriceService{c: c}
+}

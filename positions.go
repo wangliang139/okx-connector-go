@@ -2,8 +2,9 @@ package okx_connector
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
+
+	"github.com/bytedance/sonic"
 )
 
 type PositionsService struct {
@@ -120,7 +121,7 @@ func (s *PositionsService) Do(ctx context.Context, opts ...RequestOption) ([]*Po
 		return nil, err
 	}
 	result := new([]*Position)
-	if err := json.Unmarshal(data, result); err != nil {
+	if err := sonic.Unmarshal(data, result); err != nil {
 		return nil, err
 	}
 	return *result, nil

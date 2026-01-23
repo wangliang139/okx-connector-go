@@ -2,9 +2,10 @@ package okx_connector
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"strings"
+
+	"github.com/bytedance/sonic"
 )
 
 type AccountConfigService struct {
@@ -52,7 +53,7 @@ func (s *AccountConfigService) Do(ctx context.Context, opts ...RequestOption) (*
 		return nil, err
 	}
 	result := new([]*AccountConfig)
-	if err := json.Unmarshal(data, result); err != nil {
+	if err := sonic.Unmarshal(data, result); err != nil {
 		return nil, err
 	}
 	if len(*result) > 0 {
@@ -165,7 +166,7 @@ func (s *AccountBalanceService) Do(ctx context.Context, opts ...RequestOption) (
 		return nil, err
 	}
 	result := new([]*AccountBalance)
-	if err := json.Unmarshal(data, result); err != nil {
+	if err := sonic.Unmarshal(data, result); err != nil {
 		return nil, err
 	}
 	if len(*result) > 0 {
@@ -226,7 +227,7 @@ func (s *AccountLeverageInfoService) Do(ctx context.Context, opts ...RequestOpti
 		return nil, err
 	}
 	result := new([]*AccountLeverageInfo)
-	if err := json.Unmarshal(data, result); err != nil {
+	if err := sonic.Unmarshal(data, result); err != nil {
 		return nil, err
 	}
 	return *result, nil
@@ -307,7 +308,7 @@ func (s *AccountTradeFeeService) Do(ctx context.Context, opts ...RequestOption) 
 		return nil, err
 	}
 	result := new([]*AccountTradeFee)
-	if err := json.Unmarshal(data, result); err != nil {
+	if err := sonic.Unmarshal(data, result); err != nil {
 		return nil, err
 	}
 	return *result, nil

@@ -12,6 +12,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/gorilla/websocket"
 )
 
@@ -151,7 +152,7 @@ func (c *WebsocketStreamConn) login() error {
 	c.Client.debug("Login response: %s\n", message)
 
 	var response SubscribeResponse
-	if err := json.Unmarshal(message, &response); err != nil {
+	if err := sonic.Unmarshal(message, &response); err != nil {
 		return err
 	}
 	if response.Code != nil && *response.Code != "0" {
@@ -183,7 +184,7 @@ func (c *WebsocketStreamConn) subscribe(channels []SubOpArg) error {
 	}
 	c.Client.debug("Subscribe response: %s\n", message)
 	var response SubscribeResponse
-	if err := json.Unmarshal(message, &response); err != nil {
+	if err := sonic.Unmarshal(message, &response); err != nil {
 		return err
 	}
 	if response.Code != nil {
@@ -275,10 +276,10 @@ func NewWsStreamClient(opts ...func(*WebsocketStreamClient)) *WebsocketStreamCli
 	// Set default base URL to production WS URL
 	url := "wss://ws.okx.com:8443"
 	client := &WebsocketStreamClient{
-		BaseURL:    url,
-		Logger:     log.New(os.Stderr, Name, log.LstdFlags),
-		Timeout:    time.Second * 10,
-		Keepalive:  true,
+		BaseURL:   url,
+		Logger:    log.New(os.Stderr, Name, log.LstdFlags),
+		Timeout:   time.Second * 10,
+		Keepalive: true,
 	}
 
 	for _, opt := range opts {

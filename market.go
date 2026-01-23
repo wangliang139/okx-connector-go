@@ -2,10 +2,11 @@ package okx_connector
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
+
+	"github.com/bytedance/sonic"
 )
 
 // Test Connectivity endpoint (GET /api/v5/public/time)
@@ -68,7 +69,7 @@ func (s *SystemStatusService) Do(ctx context.Context, opts ...RequestOption) (re
 		return nil, err
 	}
 	res = new(SystemStatusResponse)
-	err = json.Unmarshal(data, res)
+	err = sonic.Unmarshal(data, res)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +168,7 @@ func (s *SymbolInfoService) Do(ctx context.Context, opts ...RequestOption) (res 
 		return nil, err
 	}
 	symbols := new([]*SymbolInfo)
-	err = json.Unmarshal(data, symbols)
+	err = sonic.Unmarshal(data, symbols)
 	if err != nil {
 		return nil, err
 	}
@@ -245,7 +246,7 @@ func (s *MarketKlinesService) Do(ctx context.Context, opts ...RequestOption) (re
 		return nil, err
 	}
 	var array [][]string
-	err = json.Unmarshal(data, &array)
+	err = sonic.Unmarshal(data, &array)
 	if err != nil {
 		return nil, err
 	}
@@ -326,7 +327,7 @@ func (s *MarketKlinesHisService) Do(ctx context.Context, opts ...RequestOption) 
 		return nil, err
 	}
 	var array [][]string
-	err = json.Unmarshal(data, &array)
+	err = sonic.Unmarshal(data, &array)
 	if err != nil {
 		return nil, err
 	}
@@ -393,7 +394,7 @@ func (s *SymbolQuotationService) Do(ctx context.Context, opts ...RequestOption) 
 		return nil, err
 	}
 	var quotations []*Quotation
-	if err := json.Unmarshal(data, &quotations); err != nil {
+	if err := sonic.Unmarshal(data, &quotations); err != nil {
 		return nil, err
 	}
 	if len(quotations) == 0 {
@@ -446,7 +447,7 @@ func (s *MarketDepthService) Do(ctx context.Context, opts ...RequestOption) (*De
 		return nil, err
 	}
 	depth := new([]*Depth)
-	if err := json.Unmarshal(data, depth); err != nil {
+	if err := sonic.Unmarshal(data, depth); err != nil {
 		return nil, err
 	}
 	if len(*depth) > 0 {
@@ -493,7 +494,7 @@ func (s *MarketDepthFullService) Do(ctx context.Context, opts ...RequestOption) 
 		return nil, err
 	}
 	depth := new([]*Depth)
-	if err := json.Unmarshal(data, depth); err != nil {
+	if err := sonic.Unmarshal(data, depth); err != nil {
 		return nil, err
 	}
 	if len(*depth) > 0 {
@@ -524,7 +525,7 @@ func (s *AnnouncementTypeService) Do(ctx context.Context, opts ...RequestOption)
 		return nil, err
 	}
 	result := new([]*AnnouncementType)
-	err = json.Unmarshal(data, result)
+	err = sonic.Unmarshal(data, result)
 	if err != nil {
 		return nil, err
 	}
@@ -577,7 +578,7 @@ func (s *AnnouncementService) Do(ctx context.Context, opts ...RequestOption) (re
 		return nil, err
 	}
 	result := new([]*AnnouncementResponse)
-	err = json.Unmarshal(data, result)
+	err = sonic.Unmarshal(data, result)
 	if err != nil {
 		return nil, err
 	}
@@ -630,7 +631,7 @@ func (s *MarketTradesService) Do(ctx context.Context, opts ...RequestOption) ([]
 		return nil, err
 	}
 	result := new([]*Trade)
-	err = json.Unmarshal(data, result)
+	err = sonic.Unmarshal(data, result)
 	if err != nil {
 		return nil, err
 	}
@@ -693,7 +694,158 @@ func (s *MarketTickersService) Do(ctx context.Context, opts ...RequestOption) ([
 		return nil, err
 	}
 	result := new([]*MarketTicker)
-	err = json.Unmarshal(data, result)
+	err = sonic.Unmarshal(data, result)
+	if err != nil {
+		return nil, err
+	}
+	return *result, nil
+}
+
+// /api/v5/public/position-tiers
+type PositionTiersService struct {
+	c *Client
+
+	tdMode     string  // 保证金模式
+	instType   string  // 产品类型
+	instFamily *string // 交易品种，支持多instFamily，半角逗号分隔，最大不超过5个
+	instId     *string // 产品ID，支持多instId，半角逗号分隔，最大不超过5个
+	ccy        *string // 保证金币种
+	tier       *string // 查指定档位
+}
+
+func (s *PositionTiersService) TdMode(tdMode string) *PositionTiersService {
+	s.tdMode = tdMode
+	return s
+}
+
+func (s *PositionTiersService) InstType(instType string) *PositionTiersService {
+	s.instType = instType
+	return s
+}
+
+func (s *PositionTiersService) InstFamily(instFamily string) *PositionTiersService {
+	s.instFamily = &instFamily
+	return s
+}
+
+func (s *PositionTiersService) InstId(instId string) *PositionTiersService {
+	s.instId = &instId
+	return s
+}
+
+func (s *PositionTiersService) Ccy(ccy string) *PositionTiersService {
+	s.ccy = &ccy
+	return s
+}
+
+func (s *PositionTiersService) Tier(tier string) *PositionTiersService {
+	s.tier = &tier
+	return s
+}
+
+type PositionTier struct {
+	Uly          string `json:"uly"`          // 标的指数，适用于交割/永续/期权
+	InstFamily   string `json:"instFamily"`   // 交易品种，适用于交割/永续/期权
+	InstId       string `json:"instId"`       // 币对
+	Tier         string `json:"tier"`         // 仓位档位
+	MinSz        string `json:"minSz"`        // 该档位最少借币量或者持仓数量 杠杆/期权/永续/交割 最小持仓量 默认0；当 ccy 参数生效时，返回 ccy 的最小借币量
+	MaxSz        string `json:"maxSz"`        // 该档位最多借币量或者持仓数量 杠杆/期权/永续/交割；当 ccy 参数生效时，返回 ccy 的最大借币量
+	Mmr          string `json:"mmr"`          // 仓位维持保证金率
+	Imr          string `json:"imr"`          // 最低初始维持保证金率
+	MaxLever     string `json:"maxLever"`     // 最高可用杠杆倍数
+	OptMgnFactor string `json:"optMgnFactor"` // 期权保证金系数 （仅适用于期权）
+	QuoteMaxLoan string `json:"quoteMaxLoan"` // 计价货币 最大借币量（仅适用于杠杆，且instId参数生效时），如 BTC-USDT 里的 USDT最大借币量
+	BaseMaxLoan  string `json:"baseMaxLoan"`  // 交易货币 最大借币量（仅适用于杠杆，且instId参数生效时），如 BTC-USDT 里的 BTC最大借币量
+}
+
+func (s *PositionTiersService) Do(ctx context.Context, opts ...RequestOption) ([]*PositionTier, error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/api/v5/public/position-tiers",
+		secType:  secTypeNone,
+	}
+	if s.tdMode != "" {
+		r.setParam("tdMode", s.tdMode)
+	}
+	if s.instType != "" {
+		r.setParam("instType", s.instType)
+	}
+	if s.instFamily != nil {
+		r.setParam("instFamily", *s.instFamily)
+	}
+	if s.instId != nil {
+		r.setParam("instId", *s.instId)
+	}
+	if s.ccy != nil {
+		r.setParam("ccy", *s.ccy)
+	}
+	if s.tier != nil {
+		r.setParam("tier", *s.tier)
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	result := new([]*PositionTier)
+	err = sonic.Unmarshal(data, result)
+	if err != nil {
+		return nil, err
+	}
+	return *result, nil
+}
+
+// /api/v5/public/mark-price
+type MarkPriceService struct {
+	c *Client
+
+	instType   string
+	instFamily *string
+	instId     *string
+}
+
+func (s *MarkPriceService) InstType(instType string) *MarkPriceService {
+	s.instType = instType
+	return s
+}
+
+func (s *MarkPriceService) InstFamily(instFamily string) *MarkPriceService {
+	s.instFamily = &instFamily
+	return s
+}
+
+func (s *MarkPriceService) InstId(instId string) *MarkPriceService {
+	s.instId = &instId
+	return s
+}
+
+type MarkPrice struct {
+	InstType  string `json:"instType"`
+	InstId    string `json:"instId"`
+	MarkPrice string `json:"markPrice"`
+	Ts        string `json:"ts"`
+}
+
+func (s *MarkPriceService) Do(ctx context.Context, opts ...RequestOption) ([]*MarkPrice, error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/api/v5/public/mark-price",
+		secType:  secTypeNone,
+	}
+	if s.instType != "" {
+		r.setParam("instType", s.instType)
+	}
+	if s.instFamily != nil {
+		r.setParam("instFamily", *s.instFamily)
+	}
+	if s.instId != nil {
+		r.setParam("instId", *s.instId)
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	result := new([]*MarkPrice)
+	err = sonic.Unmarshal(data, result)
 	if err != nil {
 		return nil, err
 	}

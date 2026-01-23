@@ -103,3 +103,23 @@ func Test_MarketTickers(t *testing.T) {
 	}
 	log.Printf("%+v", response)
 }
+
+func Test_PositionTiers(t *testing.T) {
+	client := newClient()
+	client.Debug = true
+	response, err := client.NewPositionTiersService().TdMode("cross").InstType("SWAP").InstFamily("ETH-USDT").Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%+v", response)
+}
+
+func Test_MarkPrice(t *testing.T) {
+	client := newClient()
+	client.Debug = true
+	response, err := client.NewMarkPriceService().InstType("SWAP").InstId("ETH-USDT-SWAP").Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%+v", response)
+}

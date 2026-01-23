@@ -2,8 +2,9 @@ package okx_connector
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
+
+	"github.com/bytedance/sonic"
 )
 
 type OpenOrdersService struct {
@@ -198,7 +199,7 @@ func (s *OpenOrdersService) Do(ctx context.Context, opts ...RequestOption) ([]*O
 		return nil, err
 	}
 	result := new([]*Order)
-	if err := json.Unmarshal(data, result); err != nil {
+	if err := sonic.Unmarshal(data, result); err != nil {
 		return nil, err
 	}
 	return *result, nil
@@ -247,7 +248,7 @@ func (s *OrderService) Do(ctx context.Context, opts ...RequestOption) ([]*Order,
 		return nil, err
 	}
 	result := new([]*Order)
-	if err := json.Unmarshal(data, result); err != nil {
+	if err := sonic.Unmarshal(data, result); err != nil {
 		return nil, err
 	}
 	return *result, nil
@@ -368,7 +369,7 @@ func (s *Orders7DHistoryService) Do(ctx context.Context, opts ...RequestOption) 
 		return nil, err
 	}
 	result := new([]*Order)
-	if err := json.Unmarshal(data, result); err != nil {
+	if err := sonic.Unmarshal(data, result); err != nil {
 		return nil, err
 	}
 	return *result, nil
@@ -489,7 +490,7 @@ func (s *OrdersHistory3MService) Do(ctx context.Context, opts ...RequestOption) 
 		return nil, err
 	}
 	result := new([]*Order)
-	if err := json.Unmarshal(data, result); err != nil {
+	if err := sonic.Unmarshal(data, result); err != nil {
 		return nil, err
 	}
 	return *result, nil
@@ -576,7 +577,7 @@ func (s *OpenAlgoOrdersService) Do(ctx context.Context, opts ...RequestOption) (
 		return nil, err
 	}
 	result := new([]*Order)
-	if err := json.Unmarshal(data, result); err != nil {
+	if err := sonic.Unmarshal(data, result); err != nil {
 		return nil, err
 	}
 	return *result, nil

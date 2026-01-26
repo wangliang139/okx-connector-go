@@ -582,3 +582,98 @@ func (s *OpenAlgoOrdersService) Do(ctx context.Context, opts ...RequestOption) (
 	}
 	return *result, nil
 }
+
+// /api/v5/trade/orders-algo-history
+type OrdersAlgoHistoryService struct {
+	c *Client
+
+	ordType  string
+	state    string
+	algoId   string
+	instType string
+	instId   string
+	after    string
+	before   string
+	limit    int
+}
+
+func (s *OrdersAlgoHistoryService) State(state string) *OrdersAlgoHistoryService {
+	s.state = state
+	return s
+}
+
+func (s *OrdersAlgoHistoryService) AlgoId(algoId string) *OrdersAlgoHistoryService {
+	s.algoId = algoId
+	return s
+}
+
+func (s *OrdersAlgoHistoryService) InstType(instType string) *OrdersAlgoHistoryService {
+	s.instType = instType
+	return s
+}
+
+func (s *OrdersAlgoHistoryService) InstId(instId string) *OrdersAlgoHistoryService {
+	s.instId = instId
+	return s
+}
+
+func (s *OrdersAlgoHistoryService) OrdType(ordType string) *OrdersAlgoHistoryService {
+	s.ordType = ordType
+	return s
+}
+
+func (s *OrdersAlgoHistoryService) After(after string) *OrdersAlgoHistoryService {
+	s.after = after
+	return s
+}
+
+func (s *OrdersAlgoHistoryService) Before(before string) *OrdersAlgoHistoryService {
+	s.before = before
+	return s
+}
+
+func (s *OrdersAlgoHistoryService) Limit(limit int) *OrdersAlgoHistoryService {
+	s.limit = limit
+	return s
+}
+
+func (s *OrdersAlgoHistoryService) Do(ctx context.Context, opts ...RequestOption) ([]*Order, error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/api/v5/trade/orders-algo-history",
+		secType:  secTypeSigned,
+	}
+	if s.ordType != "" {
+		r.setParam("ordType", s.ordType)
+	}
+	if s.state != "" {
+		r.setParam("state", s.state)
+	}
+	if s.algoId != "" {
+		r.setParam("algoId", s.algoId)
+	}
+	if s.instType != "" {
+		r.setParam("instType", s.instType)
+	}
+	if s.instId != "" {
+		r.setParam("instId", s.instId)
+	}
+	if s.after != "" {
+		r.setParam("after", s.after)
+	}
+	if s.before != "" {
+		r.setParam("before", s.before)
+	}
+	if s.limit != 0 {
+		r.setParam("limit", s.limit)
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	result := new([]*Order)
+	if err := sonic.Unmarshal(data, result); err != nil {
+		return nil, err
+	}
+	return *result, nil
+}

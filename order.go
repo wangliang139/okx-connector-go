@@ -677,3 +677,44 @@ func (s *OrdersAlgoHistoryService) Do(ctx context.Context, opts ...RequestOption
 	}
 	return *result, nil
 }
+
+// /api/v5/trade/order-algo
+type AlgoOrderService struct {
+	c *Client
+
+	algoId      string
+	algoClOrdId string
+}
+
+func (s *AlgoOrderService) AlgoId(algoId string) *AlgoOrderService {
+	s.algoId = algoId
+	return s
+}
+
+func (s *AlgoOrderService) AlgoClOrdId(algoClOrdId string) *AlgoOrderService {
+	s.algoClOrdId = algoClOrdId
+	return s
+}
+
+func (s *AlgoOrderService) Do(ctx context.Context, opts ...RequestOption) ([]*Order, error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/api/v5/trade/order-algo",
+		secType:  secTypeSigned,
+	}
+	if s.algoId != "" {
+		r.setParam("algoId", s.algoId)
+	}
+	if s.algoClOrdId != "" {
+		r.setParam("algoClOrdId", s.algoClOrdId)
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	result := new([]*Order)
+	if err := sonic.Unmarshal(data, result); err != nil {
+		return nil, err
+	}
+	return *result, nil
+}

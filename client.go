@@ -338,3 +338,11 @@ func (c *Client) NewPositionTiersService() *PositionTiersService {
 func (c *Client) NewMarkPriceService() *MarkPriceService {
 	return &MarkPriceService{c: c}
 }
+
+func (c *Client) NewOrdersAlgoHistoryService() *OrdersAlgoHistoryService {
+	return &OrdersAlgoHistoryService{c: c}
+}
+
+func (c *Client) NewAlgoOrderService() *AlgoOrderService {
+	return &AlgoOrderService{c: c}
+}

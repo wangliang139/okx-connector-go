@@ -135,7 +135,7 @@ func (c *WebsocketStreamConn) login() error {
 		},
 	}
 
-	msg, err := json.Marshal(req)
+	msg, err := sonic.Marshal(req)
 	if err != nil {
 		return err
 	}
@@ -170,7 +170,7 @@ func (c *WebsocketStreamConn) subscribe(channels []SubOpArg) error {
 		Op:   "subscribe",
 		Args: channels,
 	}
-	msg, err := json.Marshal(op)
+	msg, err := sonic.Marshal(op)
 	if err != nil {
 		return err
 	}

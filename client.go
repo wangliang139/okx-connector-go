@@ -14,7 +14,7 @@ import (
 	"os"
 	"time"
 
-	jsoniter "github.com/json-iterator/go"
+	"github.com/bytedance/sonic"
 )
 
 // Client define API client
@@ -52,7 +52,7 @@ func currentUnixTime() string {
 }
 
 func PrettyPrint(i interface{}) string {
-	s, _ := json.MarshalIndent(i, "", "\t")
+	s, _ := sonic.MarshalIndent(i, "", "\t")
 	return string(s)
 }
 
@@ -215,7 +215,7 @@ func (c *Client) callAPI(ctx context.Context, r *request, opts ...RequestOption)
 	c.debug("response status code: %d", res.StatusCode)
 
 	response := new(ApiResponse)
-	e := jsoniter.Unmarshal(data, response)
+	e := sonic.Unmarshal(data, response)
 	if e != nil {
 		c.debug("failed to unmarshal json: %s", e)
 		return nil, e

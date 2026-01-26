@@ -263,10 +263,10 @@ type Orders7DHistoryService struct {
 	ordType    string
 	state      string
 	category   string
-	after      int
-	before     int
-	begin      int
-	end        int
+	after      string
+	before     string
+	begin      string
+	end        string
 	limit      int
 }
 
@@ -295,22 +295,22 @@ func (s *Orders7DHistoryService) Category(category string) *Orders7DHistoryServi
 	return s
 }
 
-func (s *Orders7DHistoryService) After(after int) *Orders7DHistoryService {
+func (s *Orders7DHistoryService) After(after string) *Orders7DHistoryService {
 	s.after = after
 	return s
 }
 
-func (s *Orders7DHistoryService) Before(before int) *Orders7DHistoryService {
+func (s *Orders7DHistoryService) Before(before string) *Orders7DHistoryService {
 	s.before = before
 	return s
 }
 
-func (s *Orders7DHistoryService) Begin(begin int) *Orders7DHistoryService {
+func (s *Orders7DHistoryService) Begin(begin string) *Orders7DHistoryService {
 	s.begin = begin
 	return s
 }
 
-func (s *Orders7DHistoryService) End(end int) *Orders7DHistoryService {
+func (s *Orders7DHistoryService) End(end string) *Orders7DHistoryService {
 	s.end = end
 	return s
 }
@@ -349,16 +349,16 @@ func (s *Orders7DHistoryService) Do(ctx context.Context, opts ...RequestOption) 
 	if s.category != "" {
 		r.setParam("category", s.category)
 	}
-	if s.after != 0 {
+	if s.after != "" {
 		r.setParam("after", s.after)
 	}
-	if s.before != 0 {
+	if s.before != "" {
 		r.setParam("before", s.before)
 	}
-	if s.begin != 0 {
+	if s.begin != "" {
 		r.setParam("begin", s.begin)
 	}
-	if s.end != 0 {
+	if s.end != "" {
 		r.setParam("end", s.end)
 	}
 	if s.limit != 0 {

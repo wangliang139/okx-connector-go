@@ -460,6 +460,82 @@ func (client *WebsocketStreamClient) WsBalanceAndPositionServe(ctx context.Conte
 	return conn.serve(wsHandler, errHandler)
 }
 
+type WsAlgoOrderEvent struct {
+	Arg  WsEventArg `json:"arg"`
+	Data []Order    `json:"data"`
+}
+
+type WsAlgoOrderHandler func(event *WsAlgoOrderEvent)
+
+func (client *WebsocketStreamClient) WsAlgoOrderServe(ctx context.Context, handler WsAlgoOrderHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
+	channel := "orders-algo"
+	conn, err := client.dial(ctx, "ws/v5/business")
+	if err != nil {
+		return
+	}
+
+	if err = conn.login(); err != nil {
+		return
+	}
+
+	args := []SubOpArg{{Channel: channel, InstType: ToPtr("ANY")}}
+
+	err = conn.subscribe(args)
+	if err != nil {
+		return
+	}
+
+	wsHandler := func(message []byte) {
+		client.debug("Receive event: %s", message)
+		event := new(WsAlgoOrderEvent)
+		err := sonic.Unmarshal(message, event)
+		if err != nil {
+			errHandler(err)
+			return
+		}
+		handler(event)
+	}
+	return conn.serve(wsHandler, errHandler)
+}
+
+type WsAdvancedAlgoOrderEvent struct {
+	Arg  WsEventArg `json:"arg"`
+	Data []Order    `json:"data"`
+}
+
+type WsAdvancedAlgoOrderHandler func(event *WsAdvancedAlgoOrderEvent)
+
+func (client *WebsocketStreamClient) WsAdvancedAlgoOrderServe(ctx context.Context, handler WsAdvancedAlgoOrderHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
+	channel := "algo-advance"
+	conn, err := client.dial(ctx, "ws/v5/business")
+	if err != nil {
+		return
+	}
+
+	if err = conn.login(); err != nil {
+		return
+	}
+
+	args := []SubOpArg{{Channel: channel, InstType: ToPtr("ANY")}}
+
+	err = conn.subscribe(args)
+	if err != nil {
+		return
+	}
+
+	wsHandler := func(message []byte) {
+		client.debug("Receive event: %s", message)
+		event := new(WsAdvancedAlgoOrderEvent)
+		err := sonic.Unmarshal(message, event)
+		if err != nil {
+			errHandler(err)
+			return
+		}
+		handler(event)
+	}
+	return conn.serve(wsHandler, errHandler)
+}
+
 type WsUserDataHandler interface {
 	HandleAccountEvent(event *WsAccountEvent)
 	HandlePositionEvent(event *WsPositionEvent)
@@ -537,6 +613,61 @@ func (client *WebsocketStreamClient) WsUserDataServe(ctx context.Context, handle
 				return
 			}
 			handler.HandleBalanceAndPositionEvent(event)
+		}
+	}
+	return conn.serve(wsHandler, errHandler)
+}
+
+type WsBusinessDataHandler interface {
+	HandleAlgoOrderEvent(event *WsAlgoOrderEvent)
+	HandleAdvancedAlgoOrderEvent(event *WsAdvancedAlgoOrderEvent)
+}
+
+func (client *WebsocketStreamClient) WsBusinessDataServe(ctx context.Context, handler WsBusinessDataHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
+	conn, err := client.dial(ctx, "ws/v5/business")
+	if err != nil {
+		return
+	}
+
+	if err = conn.login(); err != nil {
+		return
+	}
+
+	args := []SubOpArg{
+		{Channel: "orders-algo", InstType: ToPtr("ANY")},
+		{Channel: "algo-advance", InstType: ToPtr("ANY")},
+	}
+
+	err = conn.subscribe(args)
+	if err != nil {
+		return
+	}
+
+	wsHandler := func(message []byte) {
+		client.debug("Receive event: %s", message)
+		e := new(WsSimpleEvent)
+		err := sonic.Unmarshal(message, e)
+		if err != nil {
+			errHandler(err)
+			return
+		}
+		switch e.Arg.Channel {
+		case "orders-algo":
+			event := new(WsAlgoOrderEvent)
+			err := sonic.Unmarshal(message, event)
+			if err != nil {
+				errHandler(err)
+				return
+			}
+			handler.HandleAlgoOrderEvent(event)
+		case "algo-advance":
+			event := new(WsAdvancedAlgoOrderEvent)
+			err := sonic.Unmarshal(message, event)
+			if err != nil {
+				errHandler(err)
+				return
+			}
+			handler.HandleAdvancedAlgoOrderEvent(event)
 		}
 	}
 	return conn.serve(wsHandler, errHandler)

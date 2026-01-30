@@ -240,7 +240,7 @@ type AccountTradeFeeService struct {
 	instType   string
 	instId     string
 	instFamily string
-	ruleType   string
+	groupId    string
 }
 
 func (s *AccountTradeFeeService) InstId(instId string) *AccountTradeFeeService {
@@ -258,31 +258,24 @@ func (s *AccountTradeFeeService) InstFamily(instFamily string) *AccountTradeFeeS
 	return s
 }
 
-func (s *AccountTradeFeeService) RuleType(ruleType string) *AccountTradeFeeService {
-	s.ruleType = ruleType
+func (s *AccountTradeFeeService) GroupId(groupId string) *AccountTradeFeeService {
+	s.groupId = groupId
 	return s
 }
 
 type AccountTradeFee struct {
-	Level     string     `json:"level"`     // 手续费等级
-	Taker     string     `json:"taker"`     // 对于币币/杠杆，为 USDT 交易区的吃单手续费率；对于永续，交割和期权合约，为币本位合约费率
-	Maker     string     `json:"maker"`     // 对于币币/杠杆，为 USDT 交易区的挂单手续费率；对于永续，交割和期权合约，为币本位合约费率
-	TakerU    string     `json:"takerU"`    // USDT 合约吃单手续费率，仅适用于交割/永续
-	MakerU    string     `json:"makerU"`    // USDT 合约挂单手续费率，仅适用于交割/永续
-	Delivery  string     `json:"delivery"`  // 交割手续费率
-	Exercise  string     `json:"exercise"`  // 行权手续费率
-	InstType  string     `json:"instType"`  // 产品类型
-	TakerUSDC string     `json:"takerUSDC"` // 对于币币/杠杆，为 USDⓈ&Crypto 交易区的吃单手续费率；对于永续和交割合约，为 USDC 合约费率
-	MakerUSDC string     `json:"makerUSDC"` // 对于币币/杠杆，为 USDⓈ&Crypto 交易区的挂单手续费率；对于永续和交割合约，为 USDC 合约费率
-	RuleType  string     `json:"ruleType"`  // 交易规则类型 normal：普通交易 pre_market：盘前交易
-	Ts        string     `json:"ts"`        // 数据返回时间，Unix时间戳的毫秒数格式，如 1597026383085
-	Fiat      []*FiatFee `json:"fiat"`      // 法币费率
+	Level    string      `json:"level"`    // 手续费等级
+	FeeGroup []*FeeGroup `json:"feeGroup"` // 手续费分组，适用于SPOT/MARGIN/SWAP/FUTURES/OPTION
+	Delivery string      `json:"delivery"` // 交割手续费率
+	Exercise string      `json:"exercise"` // 行权手续费率
+	InstType string      `json:"instType"` // 产品类型
+	Ts       string      `json:"ts"`       // 数据返回时间，Unix时间戳的毫秒数格式，如 1597026383085
 }
 
-type FiatFee struct {
-	Ccy   string `json:"ccy"`   // 币种
-	Taker string `json:"taker"` // 吃单手续费率
-	Maker string `json:"maker"` // 挂单手续费率
+type FeeGroup struct {
+	Taker   string `json:"taker"`   // 吃单手续费
+	Maker   string `json:"maker"`   // 挂单手续费
+	GroupId string `json:"groupId"` // 交易产品手续费分组ID，用户需要同时使用instType和groupId来确定一个交易产品的交易手续费分组；用户应该将此接口和获取交易产品基础信息一起使用，以获取特定交易产品的手续费率
 }
 
 func (s *AccountTradeFeeService) Do(ctx context.Context, opts ...RequestOption) ([]*AccountTradeFee, error) {
@@ -300,8 +293,8 @@ func (s *AccountTradeFeeService) Do(ctx context.Context, opts ...RequestOption) 
 	if s.instFamily != "" {
 		r.setParam("instFamily", s.instFamily)
 	}
-	if s.ruleType != "" {
-		r.setParam("ruleType", s.ruleType)
+	if s.groupId != "" {
+		r.setParam("groupId", s.groupId)
 	}
 	data, err := s.c.callAPI(ctx, r, opts...)
 	if err != nil {

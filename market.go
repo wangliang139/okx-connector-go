@@ -108,6 +108,7 @@ type SymbolInfo struct {
 	InstType     string `json:"instType"`
 	InstId       string `json:"instId"`
 	Uly          string `json:"uly"`
+	GroupId      string `json:"groupId"`
 	InstFamily   string `json:"instFamily"`
 	BaseCcy      string `json:"baseCcy"`
 	QuoteCcy     string `json:"quoteCcy"`

@@ -40,7 +40,7 @@ func Test_AccountLeverageInfo(t *testing.T) {
 func Test_AccountTradeFee(t *testing.T) {
 	client := newClient()
 	client.Debug = true
-	response, err := client.NewAccountTradeFeeService().InstType("SWAP").Do(context.Background())
+	response, err := client.NewAccountTradeFeeService().InstType("SWAP").InstFamily("ETH-USDT").Do(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}

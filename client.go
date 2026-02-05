@@ -135,7 +135,6 @@ func (c *Client) parseRequest(r *request, opts ...RequestOption) (err error) {
 	}
 	queryString := r.query.Encode()
 	body := &bytes.Buffer{}
-	bodyString := r.form.Encode()
 	header := http.Header{}
 	if r.header != nil {
 		header = r.header.Clone()
@@ -143,7 +142,12 @@ func (c *Client) parseRequest(r *request, opts ...RequestOption) (err error) {
 	header.Set("User-Agent", fmt.Sprintf("%s/%s", Name, Version))
 	header.Set("Content-Type", "application/json")
 	header.Set("OK-ACCESS-TIMESTAMP", ctime)
-	if bodyString != "" {
+	var bodyString  string
+	if len(r.form) > 0 {
+		bodyString, err = sonic.MarshalString(r.form)
+		if err != nil {
+			return err
+		}
 		body = bytes.NewBufferString(bodyString)
 	}
 	if r.secType == secTypeAPIKey || r.secType == secTypeSigned {
@@ -158,6 +162,9 @@ func (c *Client) parseRequest(r *request, opts ...RequestOption) (err error) {
 		raw := fmt.Sprintf("%s%s%s", ctime, r.method, r.endpoint)
 		if len(queryString) > 0 {
 			raw = fmt.Sprintf("%s?%s", raw, queryString)
+		}
+		if len(bodyString) > 0 {
+			raw = fmt.Sprintf("%s%s", raw, bodyString)
 		}
 		c.debug("before sign: %s", raw)
 		mac := hmac.New(sha256.New, []byte(c.SecretKey))
@@ -279,8 +286,12 @@ func (c *Client) NewAccountConfigService() *AccountConfigService {
 	return &AccountConfigService{c: c}
 }
 
-func (c *Client) NewAccountLeverageInfoService() *AccountLeverageInfoService {
-	return &AccountLeverageInfoService{c: c}
+func (c *Client) NewGetLeverageInfoService() *GetLeverageInfoService {
+	return &GetLeverageInfoService{c: c}
+}
+
+func (c *Client) NewSetLeverageService() *SetLeverageService {
+	return &SetLeverageService{c: c}
 }
 
 func (c *Client) NewFundingAssetCurrenciesService() *FundingAssetCurrenciesService {

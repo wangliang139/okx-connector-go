@@ -176,7 +176,7 @@ func (s *AccountBalanceService) Do(ctx context.Context, opts ...RequestOption) (
 }
 
 // /api/v5/account/leverage-info
-type AccountLeverageInfoService struct {
+type GetLeverageInfoService struct {
 	c *Client
 
 	instId  string
@@ -184,17 +184,17 @@ type AccountLeverageInfoService struct {
 	mgnMode string
 }
 
-func (s *AccountLeverageInfoService) InstId(instId string) *AccountLeverageInfoService {
+func (s *GetLeverageInfoService) InstId(instId string) *GetLeverageInfoService {
 	s.instId = instId
 	return s
 }
 
-func (s *AccountLeverageInfoService) Ccy(ccy string) *AccountLeverageInfoService {
+func (s *GetLeverageInfoService) Ccy(ccy string) *GetLeverageInfoService {
 	s.ccy = ccy
 	return s
 }
 
-func (s *AccountLeverageInfoService) MgnMode(mgnMode string) *AccountLeverageInfoService {
+func (s *GetLeverageInfoService) MgnMode(mgnMode string) *GetLeverageInfoService {
 	s.mgnMode = mgnMode
 	return s
 }
@@ -207,7 +207,7 @@ type AccountLeverageInfo struct {
 	Lever   string `json:"lever"`
 }
 
-func (s *AccountLeverageInfoService) Do(ctx context.Context, opts ...RequestOption) ([]*AccountLeverageInfo, error) {
+func (s *GetLeverageInfoService) Do(ctx context.Context, opts ...RequestOption) ([]*AccountLeverageInfo, error) {
 	r := &request{
 		method:   http.MethodGet,
 		endpoint: "/api/v5/account/leverage-info",
@@ -222,6 +222,76 @@ func (s *AccountLeverageInfoService) Do(ctx context.Context, opts ...RequestOpti
 	if s.mgnMode != "" {
 		r.setParam("mgnMode", s.mgnMode)
 	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	result := new([]*AccountLeverageInfo)
+	if err := sonic.Unmarshal(data, result); err != nil {
+		return nil, err
+	}
+	return *result, nil
+}
+
+// /api/v5/account/set-leverage
+type SetLeverageService struct {
+	c *Client
+
+	instId  string
+	ccy     string
+	lever   string
+	mgnMode string
+	posSide string
+}
+
+func (s *SetLeverageService) InstId(instId string) *SetLeverageService {
+	s.instId = instId
+	return s
+}
+
+func (s *SetLeverageService) Ccy(ccy string) *SetLeverageService {
+	s.ccy = ccy
+	return s
+}
+
+func (s *SetLeverageService) MgnMode(mgnMode string) *SetLeverageService {
+	s.mgnMode = mgnMode
+	return s
+}
+
+func (s *SetLeverageService) PosSide(posSide string) *SetLeverageService {
+	s.posSide = posSide
+	return s
+}
+
+func (s *SetLeverageService) Lever(lever string) *SetLeverageService {
+	s.lever = lever
+	return s
+}
+
+func (s *SetLeverageService) Do(ctx context.Context, opts ...RequestOption) ([]*AccountLeverageInfo, error) {
+	r := &request{
+		method:   http.MethodPost,
+		endpoint: "/api/v5/account/set-leverage",
+		secType:  secTypeSigned,
+		form:     map[string]any{},
+	}
+	if s.instId != "" {
+		r.form["instId"] = s.instId
+	}
+	if s.ccy != "" {
+		r.form["ccy"] = s.ccy
+	}
+	if s.mgnMode != "" {
+		r.form["mgnMode"] = s.mgnMode
+	}
+	if s.posSide != "" {
+		r.form["posSide"] = s.posSide
+	}
+	if s.lever != "" {
+		r.form["lever"] = s.lever
+	}
+
 	data, err := s.c.callAPI(ctx, r, opts...)
 	if err != nil {
 		return nil, err

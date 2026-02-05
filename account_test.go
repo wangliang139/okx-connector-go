@@ -30,7 +30,7 @@ func Test_AccountConfig(t *testing.T) {
 func Test_AccountLeverageInfo(t *testing.T) {
 	client := newClient()
 	client.Debug = true
-	response, err := client.NewAccountLeverageInfoService().MgnMode("cross").Do(context.Background())
+	response, err := client.NewGetLeverageInfoService().MgnMode("cross").InstId("ETH-USDT").Do(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,4 +84,14 @@ func (h *TestWsUserDataHandler) HandleOrderEvent(event *WsOrderEvent) {
 
 func (h *TestWsUserDataHandler) HandleBalanceAndPositionEvent(event *WsBalanceAndPositionEvent) {
 	// log.Printf("%+v", event)
+}
+
+func Test_SetLeverage(t *testing.T) {
+	client := newClient()
+	client.Debug = true
+	response, err := client.NewSetLeverageService().InstId("ETH-USDT").MgnMode("cross").Lever("10").Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%+v", response)
 }

@@ -22,7 +22,7 @@ type request struct {
 	method     string
 	endpoint   string
 	query      url.Values
-	form       url.Values
+	form       map[string]any
 	recvWindow int64
 	secType    secType
 	header     http.Header
@@ -59,9 +59,6 @@ func (r *request) setParams(m params) *request {
 func (r *request) validate() (err error) {
 	if r.query == nil {
 		r.query = url.Values{}
-	}
-	if r.form == nil {
-		r.form = url.Values{}
 	}
 	return nil
 }

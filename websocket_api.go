@@ -74,6 +74,15 @@ func NewWebsocketAPIClient(apiKey string, apiSecret string, baseURL ...string) *
 	}
 }
 
+// NewWebsocketAPIClientWithTestNet creates a websocket API client for production or demo trading service.
+// When isTestNet is true, it will use demo trading WS endpoint `wss://wspap.okx.com:8443`.
+func NewWebsocketAPIClientWithTestNet(apiKey string, apiSecret string, isTestNet bool) *WebsocketAPIClient {
+	if isTestNet {
+		return NewWebsocketAPIClient(apiKey, apiSecret, "wss://wspap.okx.com:8443")
+	}
+	return NewWebsocketAPIClient(apiKey, apiSecret)
+}
+
 func (c *WebsocketAPIClient) Connect() error {
 	if c.Dialer == nil {
 		return fmt.Errorf("dialer not initialized")

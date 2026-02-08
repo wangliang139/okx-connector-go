@@ -27,7 +27,10 @@ type Client struct {
 	Debug      bool
 	Logger     *log.Logger
 	TimeOffset int64
-	do         doFunc
+	// IsTestNet indicates demo trading(simulated trading) mode.
+	// When true, requests will include header `x-simulated-trading: 1`.
+	IsTestNet bool
+	do        doFunc
 }
 
 type ApiResponse struct {
@@ -100,6 +103,12 @@ func WithApiTimeOffset(timeOffset int64) func(*Client) {
 	}
 }
 
+func WithApiIsTestNet(isTestNet bool) func(*Client) {
+	return func(c *Client) {
+		c.IsTestNet = isTestNet
+	}
+}
+
 // Create client function for initialising new Okx client
 func NewClient(opts ...func(*Client)) *Client {
 	url := "https://www.okx.com"
@@ -142,7 +151,12 @@ func (c *Client) parseRequest(r *request, opts ...RequestOption) (err error) {
 	header.Set("User-Agent", fmt.Sprintf("%s/%s", Name, Version))
 	header.Set("Content-Type", "application/json")
 	header.Set("OK-ACCESS-TIMESTAMP", ctime)
-	var bodyString  string
+	if c.IsTestNet {
+		// Demo trading requires this header.
+		// See: https://www.okx.com/docs-v5/zh/#overview-demo-trading-services
+		header.Set("x-simulated-trading", "1")
+	}
+	var bodyString string
 	if len(r.form) > 0 {
 		bodyString, err = sonic.MarshalString(r.form)
 		if err != nil {

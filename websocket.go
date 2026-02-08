@@ -264,6 +264,19 @@ func WithWsBaseURL(baseURL string) func(*WebsocketStreamClient) {
 	}
 }
 
+// WithWsIsTestNet switches websocket endpoint to demo trading service.
+// When true, BaseURL will be set to `wss://wspap.okx.com:8443`.
+func WithWsIsTestNet(isTestNet bool) func(*WebsocketStreamClient) {
+	return func(c *WebsocketStreamClient) {
+		if isTestNet {
+			c.BaseURL = "wss://wspap.okx.com:8443"
+		} else if c.BaseURL == "" || c.BaseURL == "wss://wspap.okx.com:8443" {
+			// Reset to production default if not explicitly set by user.
+			c.BaseURL = "wss://ws.okx.com:8443"
+		}
+	}
+}
+
 func WithWsAPIAuth(apiKey string, apiSecret string, passphrase string) func(*WebsocketStreamClient) {
 	return func(c *WebsocketStreamClient) {
 		c.APIKey = apiKey

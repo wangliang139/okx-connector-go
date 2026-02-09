@@ -163,7 +163,14 @@ func (c *Client) parseRequest(r *request, opts ...RequestOption) (err error) {
 			return err
 		}
 		body = bytes.NewBufferString(bodyString)
+	} else if r.bodyObj != nil {
+		bodyString, err = sonic.MarshalString(r.bodyObj)
+		if err != nil {
+			return err
+		}
+		body = bytes.NewBufferString(bodyString)
 	}
+
 	if r.secType == secTypeAPIKey || r.secType == secTypeSigned {
 		if c.Passphrase != "" {
 			header.Set("OK-ACCESS-PASSPHRASE", c.Passphrase)
@@ -370,4 +377,24 @@ func (c *Client) NewOrdersAlgoHistoryService() *OrdersAlgoHistoryService {
 
 func (c *Client) NewAlgoOrderService() *AlgoOrderService {
 	return &AlgoOrderService{c: c}
+}
+
+func (c *Client) NewPlaceOrderService() *PlaceOrderService {
+	return &PlaceOrderService{c: c}
+}
+
+func (c *Client) NewCancelOrderService() *CancelOrderService {
+	return &CancelOrderService{c: c}
+}
+
+func (c *Client) NewCancelBatchOrdersService() *CancelBatchOrdersService {
+	return &CancelBatchOrdersService{c: c}
+}
+
+func (c *Client) NewPlaceAlgoOrderService() *PlaceAlgoOrderService {
+	return &PlaceAlgoOrderService{c: c}
+}
+
+func (c *Client) NewCancelAlgoOrderService() *CancelAlgoOrderService {
+	return &CancelAlgoOrderService{c: c}
 }

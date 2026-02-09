@@ -718,3 +718,383 @@ func (s *AlgoOrderService) Do(ctx context.Context, opts ...RequestOption) ([]*Or
 	}
 	return *result, nil
 }
+
+// /api/v5/trade/order
+type PlaceOrderService struct {
+	c *Client
+
+	instId   string
+	tdMode   string
+	side     string
+	ordType  string
+	sz       string
+	px       string
+	clOrdId  string
+	tag      string
+	tgtCcy   string
+	banAmend *bool
+
+	// optional fields
+	ccy        string
+	posSide    string
+	reduceOnly *bool
+
+	attachAlgoOrds []*AttachAlgoOrder
+	params         map[string]any
+}
+
+type OrderOpResult struct {
+	OrdId   string `json:"ordId"`
+	ClOrdId string `json:"clOrdId"`
+	Tag     string `json:"tag"`
+	SCode   string `json:"sCode"`
+	SMsg    string `json:"sMsg"`
+}
+
+func (s *PlaceOrderService) InstId(instId string) *PlaceOrderService {
+	s.instId = instId
+	return s
+}
+
+func (s *PlaceOrderService) TdMode(tdMode string) *PlaceOrderService {
+	s.tdMode = tdMode
+	return s
+}
+
+func (s *PlaceOrderService) Side(side string) *PlaceOrderService {
+	s.side = side
+	return s
+}
+
+func (s *PlaceOrderService) OrdType(ordType string) *PlaceOrderService {
+	s.ordType = ordType
+	return s
+}
+
+func (s *PlaceOrderService) Sz(sz string) *PlaceOrderService {
+	s.sz = sz
+	return s
+}
+
+func (s *PlaceOrderService) Px(px string) *PlaceOrderService {
+	s.px = px
+	return s
+}
+
+func (s *PlaceOrderService) ClOrdId(clOrdId string) *PlaceOrderService {
+	s.clOrdId = clOrdId
+	return s
+}
+
+func (s *PlaceOrderService) Tag(tag string) *PlaceOrderService {
+	s.tag = tag
+	return s
+}
+
+func (s *PlaceOrderService) TgtCcy(tgtCcy string) *PlaceOrderService {
+	s.tgtCcy = tgtCcy
+	return s
+}
+
+func (s *PlaceOrderService) BanAmend(banAmend bool) *PlaceOrderService {
+	s.banAmend = &banAmend
+	return s
+}
+
+func (s *PlaceOrderService) Ccy(ccy string) *PlaceOrderService {
+	s.ccy = ccy
+	return s
+}
+
+func (s *PlaceOrderService) PosSide(posSide string) *PlaceOrderService {
+	s.posSide = posSide
+	return s
+}
+
+func (s *PlaceOrderService) ReduceOnly(reduceOnly bool) *PlaceOrderService {
+	s.reduceOnly = &reduceOnly
+	return s
+}
+
+func (s *PlaceOrderService) AttachAlgoOrds(attachAlgoOrds []*AttachAlgoOrder) *PlaceOrderService {
+	s.attachAlgoOrds = attachAlgoOrds
+	return s
+}
+
+// SetParam sets an extra request parameter not explicitly modeled.
+// This is intentionally flexible to support new fields added by OKX without SDK updates.
+func (s *PlaceOrderService) SetParam(key string, value any) *PlaceOrderService {
+	if s.params == nil {
+		s.params = map[string]any{}
+	}
+	s.params[key] = value
+	return s
+}
+
+func (s *PlaceOrderService) Do(ctx context.Context, opts ...RequestOption) ([]*OrderOpResult, error) {
+	r := &request{
+		method:   http.MethodPost,
+		endpoint: "/api/v5/trade/order",
+		secType:  secTypeSigned,
+		form:     map[string]any{},
+	}
+	if s.instId != "" {
+		r.form["instId"] = s.instId
+	}
+	if s.tdMode != "" {
+		r.form["tdMode"] = s.tdMode
+	}
+	if s.side != "" {
+		r.form["side"] = s.side
+	}
+	if s.ordType != "" {
+		r.form["ordType"] = s.ordType
+	}
+	if s.sz != "" {
+		r.form["sz"] = s.sz
+	}
+	if s.px != "" {
+		r.form["px"] = s.px
+	}
+	if s.clOrdId != "" {
+		r.form["clOrdId"] = s.clOrdId
+	}
+	if s.tag != "" {
+		r.form["tag"] = s.tag
+	}
+	if s.tgtCcy != "" {
+		r.form["tgtCcy"] = s.tgtCcy
+	}
+	if s.banAmend != nil {
+		r.form["banAmend"] = *s.banAmend
+	}
+	if s.ccy != "" {
+		r.form["ccy"] = s.ccy
+	}
+	if s.posSide != "" {
+		r.form["posSide"] = s.posSide
+	}
+	if s.reduceOnly != nil {
+		r.form["reduceOnly"] = *s.reduceOnly
+	}
+	if len(s.attachAlgoOrds) > 0 {
+		r.form["attachAlgoOrds"] = s.attachAlgoOrds
+	}
+	for k, v := range s.params {
+		if _, exists := r.form[k]; !exists {
+			r.form[k] = v
+		}
+	}
+
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	result := new([]*OrderOpResult)
+	if err := sonic.Unmarshal(data, result); err != nil {
+		return nil, err
+	}
+	return *result, nil
+}
+
+// /api/v5/trade/cancel-order
+type CancelOrderService struct {
+	c *Client
+
+	instId  string
+	ordId   string
+	clOrdId string
+}
+
+type CancelOrderResult struct {
+	OrdId   string `json:"ordId"`
+	ClOrdId string `json:"clOrdId"`
+	SCode   string `json:"sCode"`
+	SMsg    string `json:"sMsg"`
+}
+
+func (s *CancelOrderService) InstId(instId string) *CancelOrderService {
+	s.instId = instId
+	return s
+}
+
+func (s *CancelOrderService) OrdId(ordId string) *CancelOrderService {
+	s.ordId = ordId
+	return s
+}
+
+func (s *CancelOrderService) ClOrdId(clOrdId string) *CancelOrderService {
+	s.clOrdId = clOrdId
+	return s
+}
+
+func (s *CancelOrderService) Do(ctx context.Context, opts ...RequestOption) ([]*CancelOrderResult, error) {
+	r := &request{
+		method:   http.MethodPost,
+		endpoint: "/api/v5/trade/cancel-order",
+		secType:  secTypeSigned,
+		form:     map[string]any{},
+	}
+	if s.instId != "" {
+		r.form["instId"] = s.instId
+	}
+	if s.ordId != "" {
+		r.form["ordId"] = s.ordId
+	}
+	if s.clOrdId != "" {
+		r.form["clOrdId"] = s.clOrdId
+	}
+
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	result := new([]*CancelOrderResult)
+	if err := sonic.Unmarshal(data, result); err != nil {
+		return nil, err
+	}
+	return *result, nil
+}
+
+// /api/v5/trade/cancel-batch-orders
+type CancelBatchOrdersService struct {
+	c *Client
+
+	orders []CancelOrderRequest
+}
+
+type CancelOrderRequest struct {
+	InstId  string `json:"instId"`
+	OrdId   string `json:"ordId,omitempty"`
+	ClOrdId string `json:"clOrdId,omitempty"`
+}
+
+func (s *CancelBatchOrdersService) Orders(orders []CancelOrderRequest) *CancelBatchOrdersService {
+	s.orders = orders
+	return s
+}
+
+func (s *CancelBatchOrdersService) Add(order CancelOrderRequest) *CancelBatchOrdersService {
+	s.orders = append(s.orders, order)
+	return s
+}
+
+func (s *CancelBatchOrdersService) Do(ctx context.Context, opts ...RequestOption) ([]*CancelOrderResult, error) {
+	r := &request{
+		method:   http.MethodPost,
+		endpoint: "/api/v5/trade/cancel-batch-orders",
+		secType:  secTypeSigned,
+		bodyObj:  s.orders,
+	}
+
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	result := new([]*CancelOrderResult)
+	if err := sonic.Unmarshal(data, result); err != nil {
+		return nil, err
+	}
+	return *result, nil
+}
+
+type AlgoOpResult struct {
+	AlgoId      string `json:"algoId"`
+	AlgoClOrdId string `json:"algoClOrdId"`
+	SCode       string `json:"sCode"`
+	SMsg        string `json:"sMsg"`
+}
+
+// /api/v5/trade/order-algo
+type PlaceAlgoOrderService struct {
+	c *Client
+
+	params map[string]any
+}
+
+func (s *PlaceAlgoOrderService) SetParam(key string, value any) *PlaceAlgoOrderService {
+	if s.params == nil {
+		s.params = map[string]any{}
+	}
+	s.params[key] = value
+	return s
+}
+
+func (s *PlaceAlgoOrderService) SetParams(params map[string]any) *PlaceAlgoOrderService {
+	for k, v := range params {
+		s.SetParam(k, v)
+	}
+	return s
+}
+
+// Convenience setters for common required fields.
+func (s *PlaceAlgoOrderService) InstId(instId string) *PlaceAlgoOrderService { return s.SetParam("instId", instId) }
+func (s *PlaceAlgoOrderService) TdMode(tdMode string) *PlaceAlgoOrderService { return s.SetParam("tdMode", tdMode) }
+func (s *PlaceAlgoOrderService) Side(side string) *PlaceAlgoOrderService     { return s.SetParam("side", side) }
+func (s *PlaceAlgoOrderService) OrdType(ordType string) *PlaceAlgoOrderService {
+	return s.SetParam("ordType", ordType)
+}
+func (s *PlaceAlgoOrderService) Sz(sz string) *PlaceAlgoOrderService { return s.SetParam("sz", sz) }
+
+func (s *PlaceAlgoOrderService) Do(ctx context.Context, opts ...RequestOption) ([]*AlgoOpResult, error) {
+	r := &request{
+		method:   http.MethodPost,
+		endpoint: "/api/v5/trade/order-algo",
+		secType:  secTypeSigned,
+		form:     map[string]any{},
+	}
+	for k, v := range s.params {
+		r.form[k] = v
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	result := new([]*AlgoOpResult)
+	if err := sonic.Unmarshal(data, result); err != nil {
+		return nil, err
+	}
+	return *result, nil
+}
+
+// /api/v5/trade/cancel-algo-order
+type CancelAlgoOrderService struct {
+	c *Client
+
+	orders []CancelAlgoOrderRequest
+}
+
+type CancelAlgoOrderRequest struct {
+	AlgoId      string `json:"algoId,omitempty"`
+	AlgoClOrdId string `json:"algoClOrdId,omitempty"`
+	InstId      string `json:"instId,omitempty"`
+}
+
+func (s *CancelAlgoOrderService) Orders(orders []CancelAlgoOrderRequest) *CancelAlgoOrderService {
+	s.orders = orders
+	return s
+}
+
+func (s *CancelAlgoOrderService) Add(order CancelAlgoOrderRequest) *CancelAlgoOrderService {
+	s.orders = append(s.orders, order)
+	return s
+}
+
+func (s *CancelAlgoOrderService) Do(ctx context.Context, opts ...RequestOption) ([]*AlgoOpResult, error) {
+	r := &request{
+		method:   http.MethodPost,
+		endpoint: "/api/v5/trade/cancel-algo-order",
+		secType:  secTypeSigned,
+		bodyObj:  s.orders,
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	result := new([]*AlgoOpResult)
+	if err := sonic.Unmarshal(data, result); err != nil {
+		return nil, err
+	}
+	return *result, nil
+}
+

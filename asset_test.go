@@ -7,6 +7,7 @@ import (
 )
 
 func Test_AssetCurrencies(t *testing.T) {
+	requireIntegrationTests(t)
 	client := newClient()
 	client.Debug = true
 	response, err := client.NewFundingAssetCurrenciesService().Do(context.Background())
@@ -17,6 +18,7 @@ func Test_AssetCurrencies(t *testing.T) {
 }
 
 func Test_FundingAssetBalances(t *testing.T) {
+	requireIntegrationTests(t)
 	client := newClient()
 	client.Debug = true
 	response, err := client.NewFundingAssetBalancesService().Do(context.Background())
@@ -27,6 +29,7 @@ func Test_FundingAssetBalances(t *testing.T) {
 }
 
 func Test_FundingAssetValuation(t *testing.T) {
+	requireIntegrationTests(t)
 	client := newClient()
 	client.Debug = true
 	response, err := client.NewFundingAssetValuationService().Ccy("USDT").Do(context.Background())

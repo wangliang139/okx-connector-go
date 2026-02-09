@@ -7,6 +7,7 @@ import (
 )
 
 func Test_AccountPositions(t *testing.T) {
+	requireIntegrationTests(t)
 	client := newClient()
 	client.Debug = true
 	response, err := client.NewPositionsService().Do(context.Background())

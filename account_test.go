@@ -5,9 +5,11 @@ import (
 	"log"
 	"os"
 	"testing"
+	"time"
 )
 
 func Test_AccountBalance(t *testing.T) {
+	requireIntegrationTests(t)
 	client := newClient()
 	client.Debug = true
 	response, err := client.NewAccountBalanceService().Do(context.Background())
@@ -18,6 +20,7 @@ func Test_AccountBalance(t *testing.T) {
 }
 
 func Test_AccountConfig(t *testing.T) {
+	requireIntegrationTests(t)
 	client := newClient()
 	client.Debug = true
 	response, err := client.NewAccountConfigService().Do(context.Background())
@@ -28,6 +31,7 @@ func Test_AccountConfig(t *testing.T) {
 }
 
 func Test_AccountLeverageInfo(t *testing.T) {
+	requireIntegrationTests(t)
 	client := newClient()
 	client.Debug = true
 	response, err := client.NewGetLeverageInfoService().MgnMode("cross").InstId("ETH-USDT").Do(context.Background())
@@ -38,6 +42,7 @@ func Test_AccountLeverageInfo(t *testing.T) {
 }
 
 func Test_AccountTradeFee(t *testing.T) {
+	requireIntegrationTests(t)
 	client := newClient()
 	client.Debug = true
 	response, err := client.NewAccountTradeFeeService().InstType("SWAP").InstFamily("ETH-USDT").Do(context.Background())
@@ -48,13 +53,19 @@ func Test_AccountTradeFee(t *testing.T) {
 }
 
 func Test_WsAccountServe(t *testing.T) {
+	requireIntegrationTests(t)
 	Apikey := os.Getenv("OKX_API_KEY")
 	Secretkey := os.Getenv("OKX_SECRET_KEY")
 	Passphrase := os.Getenv("OKX_PASSPHRASE")
+	if Apikey == "" || Secretkey == "" || Passphrase == "" {
+		t.Skip("OKX credentials not set; skipping websocket integration test")
+	}
 	client := NewWsStreamClient(WithWsAPIAuth(Apikey, Secretkey, Passphrase))
 	client.Debug = true
 	handler := &TestWsUserDataHandler{}
-	doneCh, stopCh, err := client.WsUserDataServe(context.Background(), handler, func(err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	doneCh, stopCh, err := client.WsUserDataServe(ctx, handler, func(err error) {
 		log.Printf("%+v", err)
 	})
 	if err != nil {
@@ -64,6 +75,10 @@ func Test_WsAccountServe(t *testing.T) {
 	case <-doneCh:
 		return
 	case <-stopCh:
+		return
+	case <-time.After(2 * time.Second):
+		// Stop the reader loop and exit the test.
+		close(stopCh)
 		return
 	}
 }
@@ -87,6 +102,7 @@ func (h *TestWsUserDataHandler) HandleBalanceAndPositionEvent(event *WsBalanceAn
 }
 
 func Test_SetLeverage(t *testing.T) {
+	requireIntegrationTests(t)
 	client := newClient()
 	client.Debug = true
 	response, err := client.NewSetLeverageService().InstId("ETH-USDT").MgnMode("cross").Lever("10").Do(context.Background())

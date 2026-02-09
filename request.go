@@ -23,6 +23,10 @@ type request struct {
 	endpoint   string
 	query      url.Values
 	form       map[string]any
+	// bodyObj is an optional raw JSON body payload.
+	// When set, it will be JSON-marshaled and used as request body.
+	// This is useful for endpoints requiring an array body, e.g. batch APIs.
+	bodyObj    any
 	recvWindow int64
 	secType    secType
 	header     http.Header

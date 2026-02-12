@@ -34,9 +34,11 @@ type Client struct {
 }
 
 type ApiResponse struct {
-	Code string          `json:"code"`
-	Msg  string          `json:"msg"`
-	Data json.RawMessage `json:"data"`
+	Code    string          `json:"code"`
+	Msg     string          `json:"msg"`
+	Data    json.RawMessage `json:"data"`
+	InTime  string          `json:"inTime"`
+	OutTime string          `json:"outTime"`
 }
 
 type doFunc func(req *http.Request) (*http.Response, error)
@@ -249,7 +251,7 @@ func (c *Client) callAPI(ctx context.Context, r *request, opts ...RequestOption)
 		return nil, e
 	}
 	if response.Code != "0" {
-		return nil, &ApiError{Code: response.Code, Message: response.Msg}
+		return nil, &ApiError{Code: response.Code, Message: response.Msg, Data: response.Data}
 	}
 	return response.Data, nil
 }

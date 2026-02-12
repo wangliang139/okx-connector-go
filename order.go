@@ -888,6 +888,12 @@ func (s *PlaceOrderService) Do(ctx context.Context, opts ...RequestOption) ([]*O
 
 	data, err := s.c.callAPI(ctx, r, opts...)
 	if err != nil {
+		if apiErr, ok := err.(*ApiError); ok && len(apiErr.Data) > 0 {
+			var result []*OrderOpResult
+			if err := sonic.Unmarshal(apiErr.Data, &result); err == nil && len(result) > 0 {
+				return nil, &ApiError{Code: result[0].SCode, Message: result[0].SMsg, Data: apiErr.Data}
+			}
+		}
 		return nil, err
 	}
 	result := new([]*OrderOpResult)
@@ -947,6 +953,12 @@ func (s *CancelOrderService) Do(ctx context.Context, opts ...RequestOption) ([]*
 
 	data, err := s.c.callAPI(ctx, r, opts...)
 	if err != nil {
+		if apiErr, ok := err.(*ApiError); ok && len(apiErr.Data) > 0 {
+			var result []*CancelOrderResult
+			if err := sonic.Unmarshal(apiErr.Data, &result); err == nil && len(result) > 0 {
+				return nil, &ApiError{Code: result[0].SCode, Message: result[0].SMsg, Data: apiErr.Data}
+			}
+		}
 		return nil, err
 	}
 	result := new([]*CancelOrderResult)
@@ -989,6 +1001,12 @@ func (s *CancelBatchOrdersService) Do(ctx context.Context, opts ...RequestOption
 
 	data, err := s.c.callAPI(ctx, r, opts...)
 	if err != nil {
+		if apiErr, ok := err.(*ApiError); ok && len(apiErr.Data) > 0 {
+			var result []*CancelOrderResult
+			if err := sonic.Unmarshal(apiErr.Data, &result); err == nil && len(result) > 0 {
+				return nil, &ApiError{Code: result[0].SCode, Message: result[0].SMsg, Data: apiErr.Data}
+			}
+		}
 		return nil, err
 	}
 	result := new([]*CancelOrderResult)
@@ -1003,6 +1021,7 @@ type AlgoOpResult struct {
 	AlgoClOrdId string `json:"algoClOrdId"`
 	SCode       string `json:"sCode"`
 	SMsg        string `json:"sMsg"`
+	Tag         string `json:"tag"`
 }
 
 // /api/v5/trade/order-algo
@@ -1028,9 +1047,18 @@ func (s *PlaceAlgoOrderService) SetParams(params map[string]any) *PlaceAlgoOrder
 }
 
 // Convenience setters for common required fields.
-func (s *PlaceAlgoOrderService) InstId(instId string) *PlaceAlgoOrderService { return s.SetParam("instId", instId) }
-func (s *PlaceAlgoOrderService) TdMode(tdMode string) *PlaceAlgoOrderService { return s.SetParam("tdMode", tdMode) }
-func (s *PlaceAlgoOrderService) Side(side string) *PlaceAlgoOrderService     { return s.SetParam("side", side) }
+func (s *PlaceAlgoOrderService) InstId(instId string) *PlaceAlgoOrderService {
+	return s.SetParam("instId", instId)
+}
+
+func (s *PlaceAlgoOrderService) TdMode(tdMode string) *PlaceAlgoOrderService {
+	return s.SetParam("tdMode", tdMode)
+}
+
+func (s *PlaceAlgoOrderService) Side(side string) *PlaceAlgoOrderService {
+	return s.SetParam("side", side)
+}
+
 func (s *PlaceAlgoOrderService) OrdType(ordType string) *PlaceAlgoOrderService {
 	return s.SetParam("ordType", ordType)
 }
@@ -1048,6 +1076,12 @@ func (s *PlaceAlgoOrderService) Do(ctx context.Context, opts ...RequestOption) (
 	}
 	data, err := s.c.callAPI(ctx, r, opts...)
 	if err != nil {
+		if apiErr, ok := err.(*ApiError); ok && len(apiErr.Data) > 0 {
+			var result []*AlgoOpResult
+			if err := sonic.Unmarshal(apiErr.Data, &result); err == nil && len(result) > 0 {
+				return nil, &ApiError{Code: result[0].SCode, Message: result[0].SMsg, Data: apiErr.Data}
+			}
+		}
 		return nil, err
 	}
 	result := new([]*AlgoOpResult)
@@ -1089,6 +1123,12 @@ func (s *CancelAlgoOrderService) Do(ctx context.Context, opts ...RequestOption) 
 	}
 	data, err := s.c.callAPI(ctx, r, opts...)
 	if err != nil {
+		if apiErr, ok := err.(*ApiError); ok && len(apiErr.Data) > 0 {
+			var result []*AlgoOpResult
+			if err := sonic.Unmarshal(apiErr.Data, &result); err == nil && len(result) > 0 {
+				return nil, &ApiError{Code: result[0].SCode, Message: result[0].SMsg, Data: apiErr.Data}
+			}
+		}
 		return nil, err
 	}
 	result := new([]*AlgoOpResult)
@@ -1097,4 +1137,3 @@ func (s *CancelAlgoOrderService) Do(ctx context.Context, opts ...RequestOption) 
 	}
 	return *result, nil
 }
-

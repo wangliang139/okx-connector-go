@@ -1,13 +1,15 @@
 package okx_connector
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
 // ApiError define API error when response status is 4xx or 5xx
 type ApiError struct {
-	Code    string `json:"code"`
-	Message string `json:"msg"`
+	Code    string          `json:"code"`
+	Message string          `json:"msg"`
+	Data    json.RawMessage `json:"data"`
 }
 
 // Error return error code and message

@@ -211,6 +211,43 @@ func (client *WebsocketStreamClient) WsTickerServe(ctx context.Context, symbols 
 	return conn.serve(wsHandler, errHandler)
 }
 
+type WsMarkPriceEvent struct {
+	Arg  WsEventArg  `json:"arg"`
+	Data []MarkPrice `json:"data"`
+}
+
+type WsMarkPriceHandler func(event *WsMarkPriceEvent)
+
+func (client *WebsocketStreamClient) WsMarkPriceServe(ctx context.Context, symbols []string, handler WsMarkPriceHandler, errHandler ErrHandler) (doneCh, stopCh chan struct{}, err error) {
+	channel := "mark-price"
+	conn, err := client.dial(ctx, "ws/v5/public")
+	if err != nil {
+		return
+	}
+
+	var args []SubOpArg
+	for _, symbol := range symbols {
+		args = append(args, SubOpArg{Channel: channel, InstId: &symbol})
+	}
+
+	err = conn.subscribe(args)
+	if err != nil {
+		return
+	}
+
+	wsHandler := func(message []byte) {
+		client.debug("Receive event: %s", message)
+		event := new(WsMarkPriceEvent)
+		err := sonic.Unmarshal(message, event)
+		if err != nil {
+			errHandler(err)
+			return
+		}
+		handler(event)
+	}
+	return conn.serve(wsHandler, errHandler)
+}
+
 type WsAccountEvent struct {
 	Arg       WsEventArg       `json:"arg"`
 	EventType string           `json:"eventType"`

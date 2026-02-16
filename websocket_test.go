@@ -113,3 +113,30 @@ func Test_ticker(t *testing.T) {
 		return
 	}
 }
+
+func Test_mark_price(t *testing.T) {
+	if os.Getenv("OKX_RUN_WS_TESTS") == "" {
+		t.Skip("set OKX_RUN_WS_TESTS=1 to run websocket integration tests")
+	}
+	client := NewWsStreamClient()
+	client.Debug = true
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	doneCh, stopCh, err := client.WsMarkPriceServe(ctx, []string{"SOL-USDT-SWAP"}, func(event *WsMarkPriceEvent) {
+		log.Printf("%+v", event)
+	}, func(err error) {
+		log.Printf("%+v", err)
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-doneCh:
+		return
+	case <-time.After(5 * time.Second):
+		close(stopCh)
+		return
+	case <-stopCh:
+		return
+	}
+}

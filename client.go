@@ -408,3 +408,15 @@ func (c *Client) NewFundingRateService() *FundingRateService {
 func (c *Client) NewFundingRateHistoryService() *FundingRateHistoryService {
 	return &FundingRateHistoryService{c: c}
 }
+
+func (c *Client) NewIndexTickersService() *IndexTickersService {
+	return &IndexTickersService{c: c}
+}
+
+func (c *Client) NewIndexComponentsService() *IndexComponentsService {
+	return &IndexComponentsService{c: c}
+}
+
+func (c *Client) NewOpenInterestService() *OpenInterestService {
+	return &OpenInterestService{c: c}
+}

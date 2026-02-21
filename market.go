@@ -936,13 +936,13 @@ func (s *FundingRateHistoryService) Limit(limit int) *FundingRateHistoryService 
 }
 
 type FundingRateHistory struct {
-	InstType        string `json:"instType"`        //	产品类型 SWAP：永续合约
-	InstId          string `json:"instId"`          //	产品ID，如BTC-USD-SWAP 或 ANY
-	FormulaType     string `json:"formulaType"`     //	公式类型：noRate：旧资金费率计算公式，withRate：新资金费率计算公式
-	FundingRate     string `json:"fundingRate"`     //	预计资金费率
-	RealizedRate    string `json:"realizedRate"`    //	实际资金费率
-	FundingTime     string `json:"fundingTime"`     //	资金费时间 ，Unix时间戳的毫秒数格式，如 1597026383085
-	Method          string `json:"method"`          //	资金费收取逻辑：current_period：当期收，next_period：跨期收（不再支持跨期收合约）
+	InstType     string `json:"instType"`     //	产品类型 SWAP：永续合约
+	InstId       string `json:"instId"`       //	产品ID，如BTC-USD-SWAP 或 ANY
+	FormulaType  string `json:"formulaType"`  //	公式类型：noRate：旧资金费率计算公式，withRate：新资金费率计算公式
+	FundingRate  string `json:"fundingRate"`  //	预计资金费率
+	RealizedRate string `json:"realizedRate"` //	实际资金费率
+	FundingTime  string `json:"fundingTime"`  //	资金费时间 ，Unix时间戳的毫秒数格式，如 1597026383085
+	Method       string `json:"method"`       //	资金费收取逻辑：current_period：当期收，next_period：跨期收（不再支持跨期收合约）
 }
 
 func (s *FundingRateHistoryService) Do(ctx context.Context, opts ...RequestOption) ([]*FundingRateHistory, error) {
@@ -968,6 +968,156 @@ func (s *FundingRateHistoryService) Do(ctx context.Context, opts ...RequestOptio
 		return nil, err
 	}
 	result := new([]*FundingRateHistory)
+	err = sonic.Unmarshal(data, result)
+	if err != nil {
+		return nil, err
+	}
+	return *result, nil
+}
+
+// /api/v5/market/index-tickers
+type IndexTickersService struct {
+	c *Client
+
+	instId string
+}
+
+func (s *IndexTickersService) InstId(instId string) *IndexTickersService {
+	s.instId = instId
+	return s
+}
+
+type IndexTicker struct {
+	InstId  string `json:"instId"`  //	指数
+	IdxPx   string `json:"idxPx"`   //	最新指数价格
+	High24h string `json:"high24h"` //	24小时指数最高价格
+	Low24h  string `json:"low24h"`  //	24小时指数最低价格
+	Open24h string `json:"open24h"` //	24小时指数开盘价格
+	SodUtc0 string `json:"sodUtc0"` //	UTC 0 时开盘价
+	SodUtc8 string `json:"sodUtc8"` //	UTC+8 时开盘价
+	Ts      string `json:"ts"`      //	指数价格更新时间，Unix时间戳的毫秒数格式，如1597026383085
+}
+
+func (s *IndexTickersService) Do(ctx context.Context, opts ...RequestOption) ([]*IndexTicker, error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/api/v5/market/index-tickers",
+		secType:  secTypeNone,
+	}
+	if s.instId != "" {
+		r.setParam("instId", s.instId)
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	result := new([]*IndexTicker)
+	err = sonic.Unmarshal(data, result)
+	if err != nil {
+		return nil, err
+	}
+	return *result, nil
+}
+
+// /api/v5/market/index-components
+type IndexComponentsService struct {
+	c *Client
+
+	index string
+}
+
+func (s *IndexComponentsService) Index(index string) *IndexComponentsService {
+	s.index = index
+	return s
+}
+
+type IndexComponent struct {
+	Index      string `json:"index"` //	指数名称
+	Last       string `json:"last"`  //	最新指数价格
+	Ts         string `json:"ts"`    //	数据产生时间，Unix时间戳的毫秒数格式， 如1597026383085
+	Components []struct {
+		Exch   string `json:"exch"`   //	交易所名称
+		Symbol string `json:"symbol"` //	采集的币对名称
+		SymPx  string `json:"symPx"`  //	采集的币对价格
+		Wgt    string `json:"wgt"`    //	权重
+		CnvPx  string `json:"cnvPx"`  //	换算成指数后的价格
+	} `json:"components"` //	成分
+}
+
+func (s *IndexComponentsService) Do(ctx context.Context, opts ...RequestOption) (*IndexComponent, error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/api/v5/market/index-components",
+		secType:  secTypeNone,
+	}
+	if s.index != "" {
+		r.setParam("index", s.index)
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	result := new(*IndexComponent)
+	err = sonic.Unmarshal(data, result)
+	if err != nil {
+		return nil, err
+	}
+	return *result, nil
+}
+
+// /api/v5/public/open-interest
+type OpenInterestService struct {
+	c *Client
+
+	instType   string
+	instFamily *string
+	instId     *string
+}
+
+func (s *OpenInterestService) InstType(instType string) *OpenInterestService {
+	s.instType = instType
+	return s
+}
+
+func (s *OpenInterestService) InstFamily(instFamily string) *OpenInterestService {
+	s.instFamily = &instFamily
+	return s
+}
+
+func (s *OpenInterestService) InstId(instId string) *OpenInterestService {
+	s.instId = &instId
+	return s
+}
+
+type OpenInterest struct {
+	InstType        string `json:"instType"`
+	InstId          string `json:"instId"`
+	OpenInterest    string `json:"oi"`    //	持仓量（按张折算）
+	OpenInterestCcy string `json:"oiCcy"` //	持仓量（按币折算）
+	OpenInterestUsd string `json:"oiUsd"` //	持仓量（按USD折算）
+	Ts              string `json:"ts"`
+}
+
+func (s *OpenInterestService) Do(ctx context.Context, opts ...RequestOption) ([]*OpenInterest, error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/api/v5/public/open-interest",
+		secType:  secTypeNone,
+	}
+	if s.instType != "" {
+		r.setParam("instType", s.instType)
+	}
+	if s.instFamily != nil {
+		r.setParam("instFamily", *s.instFamily)
+	}
+	if s.instId != nil {
+		r.setParam("instId", *s.instId)
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	result := new([]*OpenInterest)
 	err = sonic.Unmarshal(data, result)
 	if err != nil {
 		return nil, err

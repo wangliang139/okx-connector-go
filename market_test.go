@@ -153,10 +153,43 @@ func Test_FundingRate(t *testing.T) {
 }
 
 func Test_FundingRateHistory(t *testing.T) {
-	// requireIntegrationTests(t)
+	requireIntegrationTests(t)
 	client := newClient()
 	client.Debug = true
 	response, err := client.NewFundingRateHistoryService().InstId("ETH-USDT-SWAP").Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%+v", response)
+}
+
+func Test_IndexTickers(t *testing.T) {
+	requireIntegrationTests(t)
+	client := newClient()
+	client.Debug = true
+	response, err := client.NewIndexTickersService().InstId("BTC-USDT").Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%+v", response)
+}
+
+func Test_IndexComponents(t *testing.T) {
+	requireIntegrationTests(t)
+	client := newClient()
+	client.Debug = true
+	response, err := client.NewIndexComponentsService().Index("BTC-USDT").Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%+v", response)
+}
+
+func Test_OpenInterest(t *testing.T) {
+	requireIntegrationTests(t)
+	client := newClient()
+	client.Debug = true
+	response, err := client.NewOpenInterestService().InstType("SWAP").InstId("ETH-USDT-SWAP").Do(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}

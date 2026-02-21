@@ -420,3 +420,7 @@ func (c *Client) NewIndexComponentsService() *IndexComponentsService {
 func (c *Client) NewOpenInterestService() *OpenInterestService {
 	return &OpenInterestService{c: c}
 }
+
+func (c *Client) NewEconomicCalendarService() *EconomicCalendarService {
+	return &EconomicCalendarService{c: c}
+}

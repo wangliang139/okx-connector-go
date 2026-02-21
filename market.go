@@ -1124,3 +1124,90 @@ func (s *OpenInterestService) Do(ctx context.Context, opts ...RequestOption) ([]
 	}
 	return *result, nil
 }
+
+// /api/v5/public/economic-calendar
+type EconomicCalendarService struct {
+	c *Client
+
+	region     *string
+	importance *int
+	before     *time.Time
+	after      *time.Time
+	limit      *int
+}
+
+func (s *EconomicCalendarService) Region(region string) *EconomicCalendarService {
+	s.region = &region
+	return s
+}
+
+func (s *EconomicCalendarService) Importance(importance int) *EconomicCalendarService {
+	s.importance = &importance
+	return s
+}
+
+func (s *EconomicCalendarService) Before(before time.Time) *EconomicCalendarService {
+	s.before = &before
+	return s
+}
+
+func (s *EconomicCalendarService) After(after time.Time) *EconomicCalendarService {
+	s.after = &after
+	return s
+}
+
+func (s *EconomicCalendarService) Limit(limit int) *EconomicCalendarService {
+	s.limit = &limit
+	return s
+}
+
+type EconomicCalendar struct {
+	CalendarId  string `json:"calendarId"`  //	经济日历ID
+	Date        string `json:"date"`        //	actual字段值的预期发布时间，Unix时间戳的毫秒数格式，如 1597026383085
+	Region      string `json:"region"`      //	国家，地区或实体
+	Category    string `json:"category"`    //	类别名
+	Event       string `json:"event"`       //	事件名
+	RefDate     string `json:"refDate"`     //	当前事件指向的日期
+	Actual      string `json:"actual"`      //	事件实际值
+	Previous    string `json:"previous"`    //	当前事件上个周期的最新实际值。若发生数据修正，该字段存储上个周期修正后的实际值。
+	Forecast    string `json:"forecast"`    //	由权威经济学家共同得出的预测值
+	DateSpan    string `json:"dateSpan"`    //	0：事件的具体发生时间已知, 1：事件的具体发生日期已知，但时间未知
+	Importance  string `json:"importance"`  //	重要性 1: 低, 2: 中等, 3: 高
+	UTime       string `json:"uTime"`       //	当前事件的最新更新时间，Unix时间戳的毫秒数格式，如 1597026383085
+	PrevInitial string `json:"prevInitial"` //	该事件上一周期的初始值; 仅在修正发生时有值
+	Ccy         string `json:"ccy"`         //	事件实际值对应的货币
+	Unit        string `json:"unit"`        //	事件实际值对应的单位
+}
+
+func (s *EconomicCalendarService) Do(ctx context.Context, opts ...RequestOption) ([]*EconomicCalendar, error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/api/v5/public/economic-calendar",
+		secType:  secTypeNone,
+	}
+	if s.region != nil {
+		r.setParam("region", *s.region)
+	}
+	if s.importance != nil {
+		r.setParam("importance", *s.importance)
+	}
+	if s.before != nil {
+		r.setParam("before", s.before.UnixMilli())
+	}
+	if s.after != nil {
+		r.setParam("after", s.after.UnixMilli())
+	}
+	if s.limit != nil {
+		r.setParam("limit", *s.limit)
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	result := new([]*EconomicCalendar)
+	err = sonic.Unmarshal(data, result)
+	if err != nil {
+		return nil, err
+	}
+	return *result, nil
+}

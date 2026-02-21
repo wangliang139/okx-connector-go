@@ -195,3 +195,14 @@ func Test_OpenInterest(t *testing.T) {
 	}
 	log.Printf("%+v", response)
 }
+
+func Test_EconomicCalendar(t *testing.T) {
+	requireIntegrationTests(t)
+	client := newClient()
+	client.Debug = true
+	response, err := client.NewEconomicCalendarService().Region("US").Importance(1).Before(time.Now()).After(time.Now()).Limit(100).Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%+v", response)
+}

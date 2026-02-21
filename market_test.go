@@ -140,3 +140,25 @@ func Test_MarkPrice(t *testing.T) {
 	}
 	log.Printf("%+v", response)
 }
+
+func Test_FundingRate(t *testing.T) {
+	requireIntegrationTests(t)
+	client := newClient()
+	client.Debug = true
+	response, err := client.NewFundingRateService().InstId("ETH-USDT-SWAP").Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%+v", response)
+}
+
+func Test_FundingRateHistory(t *testing.T) {
+	// requireIntegrationTests(t)
+	client := newClient()
+	client.Debug = true
+	response, err := client.NewFundingRateHistoryService().InstId("ETH-USDT-SWAP").Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%+v", response)
+}

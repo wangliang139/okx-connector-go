@@ -400,3 +400,11 @@ func (c *Client) NewPlaceAlgoOrderService() *PlaceAlgoOrderService {
 func (c *Client) NewCancelAlgoOrderService() *CancelAlgoOrderService {
 	return &CancelAlgoOrderService{c: c}
 }
+
+func (c *Client) NewFundingRateService() *FundingRateService {
+	return &FundingRateService{c: c}
+}
+
+func (c *Client) NewFundingRateHistoryService() *FundingRateHistoryService {
+	return &FundingRateHistoryService{c: c}
+}

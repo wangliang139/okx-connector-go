@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/bytedance/sonic"
 )
@@ -846,6 +847,127 @@ func (s *MarkPriceService) Do(ctx context.Context, opts ...RequestOption) ([]*Ma
 		return nil, err
 	}
 	result := new([]*MarkPrice)
+	err = sonic.Unmarshal(data, result)
+	if err != nil {
+		return nil, err
+	}
+	return *result, nil
+}
+
+// /api/v5/public/funding-rate
+type FundingRateService struct {
+	c *Client
+
+	instId string
+}
+
+func (s *FundingRateService) InstId(instId string) *FundingRateService {
+	s.instId = instId
+	return s
+}
+
+type FundingRate struct {
+	InstType        string `json:"instType"`        //	产品类型 SWAP：永续合约
+	InstId          string `json:"instId"`          //	产品ID，如BTC-USD-SWAP 或 ANY
+	Method          string `json:"method"`          //	资金费收取逻辑：current_period：当期收，next_period：跨期收（不再支持跨期收合约）
+	FormulaType     string `json:"formulaType"`     //	公式类型：noRate：旧资金费率计算公式，withRate：新资金费率计算公式
+	FundingRate     string `json:"fundingRate"`     //	资金费率
+	FundingTime     string `json:"fundingTime"`     //	资金费时间 ，Unix时间戳的毫秒数格式，如 1597026383085
+	NextFundingTime string `json:"nextFundingTime"` //	下一期资金费时间 ，Unix时间戳的毫秒数格式，如 1622851200000
+	MinFundingRate  string `json:"minFundingRate"`  //	资金费率下限
+	MaxFundingRate  string `json:"maxFundingRate"`  //	资金费率上限
+	InterestRate    string `json:"interestRate"`    //	利率
+	ImpactValue     string `json:"impactValue"`     //	深度加权金额（计价币数量）
+	SettState       string `json:"settState"`       //	资金费率结算状态：processing：结算中，settled：已结算
+	SettFundingRate string `json:"settFundingRate"` //	若 settState = processing，该字段代表用于本轮结算的资金费率；若 settState = settled，该字段代表用于上轮结算的资金费率
+	Premium         string `json:"premium"`         //	溢价指数，公式：[max (0，深度加权买价 - 指数价格) – max (0，指数价格 – 深度加权卖价)] / 指数价格
+	Ts              string `json:"ts"`              //	数据更新时间，Unix时间戳的毫秒数格式，如 1597026383085
+}
+
+func (s *FundingRateService) Do(ctx context.Context, opts ...RequestOption) ([]*FundingRate, error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/api/v5/public/funding-rate",
+		secType:  secTypeNone,
+	}
+	if s.instId != "" {
+		r.setParam("instId", s.instId)
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	result := new([]*FundingRate)
+	err = sonic.Unmarshal(data, result)
+	if err != nil {
+		return nil, err
+	}
+	return *result, nil
+}
+
+// /api/v5/public/funding-rate-history
+type FundingRateHistoryService struct {
+	c *Client
+
+	instId string
+	before *time.Time
+	after  *time.Time
+	limit  *int
+}
+
+func (s *FundingRateHistoryService) InstId(instId string) *FundingRateHistoryService {
+	s.instId = instId
+	return s
+}
+
+func (s *FundingRateHistoryService) Before(before time.Time) *FundingRateHistoryService {
+	s.before = &before
+	return s
+}
+
+func (s *FundingRateHistoryService) After(after time.Time) *FundingRateHistoryService {
+	s.after = &after
+	return s
+}
+
+func (s *FundingRateHistoryService) Limit(limit int) *FundingRateHistoryService {
+	s.limit = &limit
+	return s
+}
+
+type FundingRateHistory struct {
+	InstType        string `json:"instType"`        //	产品类型 SWAP：永续合约
+	InstId          string `json:"instId"`          //	产品ID，如BTC-USD-SWAP 或 ANY
+	FormulaType     string `json:"formulaType"`     //	公式类型：noRate：旧资金费率计算公式，withRate：新资金费率计算公式
+	FundingRate     string `json:"fundingRate"`     //	预计资金费率
+	RealizedRate    string `json:"realizedRate"`    //	实际资金费率
+	FundingTime     string `json:"fundingTime"`     //	资金费时间 ，Unix时间戳的毫秒数格式，如 1597026383085
+	Method          string `json:"method"`          //	资金费收取逻辑：current_period：当期收，next_period：跨期收（不再支持跨期收合约）
+}
+
+func (s *FundingRateHistoryService) Do(ctx context.Context, opts ...RequestOption) ([]*FundingRateHistory, error) {
+	r := &request{
+		method:   http.MethodGet,
+		endpoint: "/api/v5/public/funding-rate-history",
+		secType:  secTypeNone,
+	}
+	if s.instId != "" {
+		r.setParam("instId", s.instId)
+	}
+	if s.before != nil {
+		r.setParam("before", strconv.FormatInt(s.before.UnixMilli(), 10))
+	}
+	if s.after != nil {
+		r.setParam("after", strconv.FormatInt(s.after.UnixMilli(), 10))
+	}
+	if s.limit != nil {
+		r.setParam("limit", *s.limit)
+	}
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return nil, err
+	}
+	result := new([]*FundingRateHistory)
 	err = sonic.Unmarshal(data, result)
 	if err != nil {
 		return nil, err

@@ -422,9 +422,12 @@ func (s *MarketDepthService) Size(size int) *MarketDepthService {
 }
 
 type Depth struct {
-	Ts   string     `json:"ts"`
-	Bids [][]string `json:"bids"`
-	Asks [][]string `json:"asks"`
+	Ts        string     `json:"ts"`
+	Asks      [][]string `json:"asks"`
+	Bids      [][]string `json:"bids"`
+	Checksum  int        `json:"checksum"`
+	PrevSeqId int        `json:"prevSeqId"`
+	SeqId     int        `json:"seqId"`
 }
 
 // Send the request

@@ -59,19 +59,10 @@ func (client *WebsocketStreamClient) WsKlineServe(ctx context.Context, symbols [
 
 type WsDepthHandler func(event *WsDepthEvent)
 
-type SymbolDepth struct {
-	Ts        string     `json:"ts"`
-	Asks      [][]string `json:"asks"`
-	Bids      [][]string `json:"bids"`
-	Checksum  int        `json:"checksum"`
-	PrevSeqId int        `json:"prevSeqId"`
-	SeqId     int        `json:"seqId"`
-}
-
 type WsDepthEvent struct {
-	Arg    WsEventArg    `json:"arg"`
-	Action string        `json:"action"`
-	Data   []SymbolDepth `json:"data"`
+	Arg    WsEventArg `json:"arg"`
+	Action string     `json:"action"`
+	Data   []Depth    `json:"data"`
 }
 
 // WsDepthServe serve websocket depth handler with a symbol and interval like 15m, 30s

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -63,6 +64,7 @@ type WebsocketStreamClient struct {
 	APIKey     string
 	APISecret  string
 	Passphrase string
+	ProxyURL   *string
 
 	BaseURL   string
 	Debug     bool
@@ -83,11 +85,21 @@ func (c *WebsocketStreamClient) debug(format string, v ...interface{}) {
 }
 
 func (c *WebsocketStreamClient) dial(ctx context.Context, path string) (*WebsocketStreamConn, error) {
-	Dialer := websocket.Dialer{
-		Proxy:             http.ProxyFromEnvironment,
-		HandshakeTimeout:  45 * time.Second,
-		EnableCompression: false,
+	proxy := http.ProxyFromEnvironment
+	if c.ProxyURL != nil {
+		u, err := url.Parse(*c.ProxyURL)
+		if err != nil {
+			return nil, err
+		}
+		proxy = http.ProxyURL(u)
 	}
+
+	Dialer := websocket.Dialer{
+		Proxy:             proxy,
+		HandshakeTimeout:  45 * time.Second,
+		EnableCompression: true,
+	}
+
 	headers := http.Header{}
 	headers.Add("User-Agent", fmt.Sprintf("%s/%s", Name, Version))
 	endpoint := fmt.Sprintf("%s/%s", c.BaseURL, path)
@@ -274,6 +286,12 @@ func WithWsIsTestNet(isTestNet bool) func(*WebsocketStreamClient) {
 			// Reset to production default if not explicitly set by user.
 			c.BaseURL = "wss://ws.okx.com:8443"
 		}
+	}
+}
+
+func WithWsProxyURL(proxyURL string) func(*WebsocketStreamClient) {
+	return func(c *WebsocketStreamClient) {
+		c.ProxyURL = &proxyURL
 	}
 }
 
